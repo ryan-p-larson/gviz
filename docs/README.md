@@ -33,3 +33,11 @@ A collection of helpful links and prior work.
 **Real Time**
 - [Slides from rluta](https://rluta.github.io/d3-realtime/)
 - [Real time mapping by Twitter](https://blog.twitter.com/2014/tweet-emotion-real-time-tweet-analysis-with-pubnub-data-stream)
+
+
+#### Natural Language Processing
+
+- [Scikit Pipelines for categorical data](https://tomaugspurger.github.io/categorical-pipelines.html) by Tom Augspurger
+- [Text classification with NLTK and Scikit](http://streamhacker.com/2012/11/22/text-classification-sentiment-analysis-nltk-scikitlearn/) by StreamHacker
+- [Eliminating low information features for higher precision, recall](http://streamhacker.com/2010/06/16/text-classification-sentiment-analysis-eliminate-low-information-features/) by ^^
+- [Improvements for text classification](http://thinknook.com/10-ways-to-improve-your-classification-algorithm-performance-2013-01-21/)
