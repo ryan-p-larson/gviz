@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>GeoViz Project</title>
+
+	<!-- CSS -->
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
+
+    <!-- Bootstrap and jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<!-- D3.js + TopoJson -->
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+
+	<!-- D3 legend to make it easier -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.21.0/d3-legend.min.js"></script>
+	<!-- Simple statistics for Jenks natural breaks -->
+	<script src="https://unpkg.com/simple-statistics@2.3.0/dist/simple-statistics.min.js"></script>
+
+	<!-- Styling -->
+	<style>
+		.axis--y .domain {
+			display: none;
+		}
+		input {
+		  background: transparent;
+		  border: none;
+		  margin: 10px 384px;
+		  width: 180px;
+		  font-size: 18px;
+		  padding: 6px;
+		  text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+
+<!-- container -->
+<div class="container">
+  <br>
+	<div class="row">
+		<div class="panel panel-default">
+          <div class="panel-heading">
+          	<h2>GeoVisualization <strong>Project</strong></h2>
+          </div>
+
+          <div class="panel-body">
+          	<div class="row">
+							<div class="col-xs-9"><input autofocus maxlength=5 placeholder="type a hashtag"></div>
+            	<div class="col-xs-9" id="chart-map"></div>
+              <div class="col-xs-3" id="chart-users"></div>
+            </div>
+            <div class="row">
+            	<div class="col-xs-9" id="chart-timeline"></div>
+                <div class="col-xs-3" id="chart-table"></div>
+            </div>
+            <div class="row">
+            	<div class="col-xs-12">
+								<h4>Notes</h4>
+								<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+							</div>
+            </div>
+          </div>
+          <div class="panel-footer">
+						<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
+					</div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+/////////////////////////////////
+////////  global vars  //////////
+/////////////////////////////////
+var col_xs_width = d3.select('#chart-map')
+		.node().getBoundingClientRect().width;
+
+/////////////////////////////////
+////////  map first  ////////////
+/////////////////////////////////
+var margin_map = {top: 20, right: 20, bottom: 20, left: 20},
+		mapWidth = col_xs_width - margin_map.left - margin_map.right,
+		mapHeight = (mapWidth / 1.8) - margin_map.top - margin_map.bottom;
+
+
+var geoProjection = d3.geoMercator()
+		.center([10, 0])
+		.scale(150),
+geoPath = d3.geoPath()
+		.pointRadius(2)
+		.projection(geoProjection);
+
+///////// OLD SVG WAY
+/*
+var map_svg = d3.select('#chart-map')
+		.append('svg')
+		.attr('width', mapWidth + margin_map.left + margin_map.right)
+		.attr('height', mapHeight + margin_map.top + margin_map.bottom)
+			.append('g')
+		.attr('transform', 'translate(' + margin_map.left + ',' + margin_map.top + ')');
+
+d3.json('data/external/maps/110m.json', function(err, map_file) {
+		if (err) console.log(err);
+
+		var g = map_svg.append("g"),
+		countries = topojson.feature(map_file, map_file.objects.countries).features;
+
+		g.selectAll("path.land")
+			.data(countries)
+			.enter()
+			.append("path")
+			.attr("class", 'land')
+			.attr("d", geoPath);
+	});*/
+	// Add tweets
+	d3.csv('data/processed/scrape/3-31/test-tweets.csv', format_map_tweets, function(err, tweets) {
+			if (err) throw err;
+			console.log(tweets);
+
+			map_tweets(tweets);
+	});
+
+
+function map_tweets(data) {
+
+	var canvas0 = d3.selectAll('canvas');
+	var canvas1 = d3.select("#chart-map").insert("canvas", "input")
+			.attr("width", mapWidth)
+			.attr("height", mapHeight)
+			.style("opacity", 0);
+
+	var context = canvas1.node().getContext("2d");
+	context.fillStyle = "#fff";
+	context.fillRect(0, 0, mapWidth, mapHeight);
+
+		// Render the active zipcodes.
+	context.globalAlpha = 1;
+	context.fillStyle = "#f00";
+	data.forEach(function(d) {
+		if (d.x && d.y) context.fillRect(d.x, d.y, 1, 1);
+	});
+
+	canvas1.transition()
+		.duration(350)
+		.style("opacity", 1)
+		.each("end", function() { canvas0.remove(); });
+}
+
+
+
+
+
+function format_map_tweets(d) {
+	var p = geoProjection([+d.longitude, +d.latitude]);
+	if (p) d.x = Math.round(p[0]), d.y = Math.round(p[1]);
+	return d;
+}
+/////////////////////////////////
+////////  Tweet timeline  ///////
+/////////////////////////////////
+var margin_timeline = {top: 20, right: 20, bottom: 20, left: 40},
+		width_timeline = mapWidth - margin_timeline.left - margin_timeline.right,
+		height_timeline = (mapHeight / 2) - margin_timeline.top - margin_timeline.bottom;
+
+var timeline_svg = d3.select('#chart-timeline')
+	.append('svg')
+	.attr('width', width_timeline + margin_timeline.left + margin_timeline.right)
+	.attr('height', height_timeline + margin_timeline.top + margin_timeline.bottom)
+		.append('g')
+	.attr('transform', 'translate(' + margin_timeline.left + ',' + margin_timeline.top + ')');
+
+var parse_timeline_date = d3.timeParse("%Y-%m-%d"),
+		parse_timeline_count = d3.format(".0s");
+
+var x_timeline = d3.scaleTime().rangeRound([0, mapWidth]),
+		y_timeline = d3.scaleLinear().range([height_timeline, 0]);
+
+var x_axis_timeline = d3.axisBottom(x_timeline),
+		y_axis_timeline = d3.axisLeft(y_timeline)
+			.tickFormat(parse_timeline_count);
+
+var brush_timeline = d3.brushX()
+		.extent([[0, 0], [width_timeline, height_timeline]])
+		.on("end", brushed_timeline)
+
+var context_timeline = timeline_svg.append("g")
+		.attr("class", "context");
+
+// Read in timeline tweets
+d3.csv('data/processed/scrape/4-4/day-agg.csv', timeline_tweet_format, function(err, tweets) {
+	if (err) throw err;
+
+	// set domains
+	x_timeline.domain(d3.extent(tweets, function(d) { return d.day; }));
+	y_timeline.domain([0, d3.max(tweets, function(d) { return d.count; })]);
+
+	// Add bars
+	context_timeline.selectAll('.timeline-day')
+		.data(tweets)
+		.enter().append('rect')
+		.attr('class', 'timeline-day')
+		.attr('x', function(d) { return x_timeline(d.day); })
+		.attr('y', function(d) { return y_timeline(d.count); })
+		.attr('width', width_timeline / (tweets.length + 20))
+		.attr('height', function(d) { return (height_timeline) - y_timeline(d.count); });
+
+	// add axes
+	context_timeline.append('g')
+		.attr("class", "axis axis--x")
+		.attr("transform", "translate(0," + (height_timeline) + ")")
+		.call(x_axis_timeline);
+	context_timeline.append('g')
+		.attr('class', 'axis axis--y')
+		.call(y_axis_timeline)
+		.append('text')					// Add y label
+			.attr("x", 4)
+			.attr("y", y_timeline(y_timeline.ticks().pop()) + 0.5)
+			.attr("dy", "0.32em")
+			.attr("fill", "#000")
+			.attr("font-weight", "bold")
+			.attr("text-anchor", "start")
+			.text("Tweets per Day");
+
+	// add brush
+	context_timeline.append('g')
+		.attr('class', 'brush')
+		.call(brush_timeline);
+});
+function timeline_tweet_format(d) {
+	// format the tweet's date and int
+	d.count = +d.count;
+	d.day = parse_timeline_date(d.day);
+	return d;
+}
+function brushed_timeline() {
+  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+	// If empty reset the selection (show all)
+	if (!d3.event.selection) return; //ignore empty selections
+	// RESET here
+
+	var d0 = d3.event.selection.map(x_timeline.invert),
+      d1 = d0.map(d3.timeDay.round);
+
+	// If empty when rounded, use floor & ceil instead.
+  if (d1[0] >= d1[1]) {
+    d1[0] = d3.timeDay.floor(d0[0]);
+    d1[1] = d3.timeDay.offset(d1[0]);
+  }
+
+  d3.select(this).transition().call(d3.event.target.move, d1.map(x_timeline));
+
+	// Select the points on the map here
+}
+
+/////////////////////////////////
+////////  User barchart  ////////
+/////////////////////////////////
+var margin_user = {left: 40, top:20, right:20, bottom: 20},
+		width_user = (col_xs_width / 3) - margin_user.left - margin_user.right,
+		height_user = (width_user / 1.8) - margin_user.top - margin_user.bottom;
+
+var user_svg = d3.select('#chart-users').append('svg')
+		.attr('width', width_user + margin_user.left + margin_user.right)
+		.attr('height', height_user + margin_user.top + margin_user.bottom)
+			.append('g')
+		.attr('transform', 'translate(' + margin_user.left + ',' + margin_user.top + ')');
+
+var x_user = d3.scaleLinear().domain([0, width_user]),
+		y_user = d3.scaleOrdinal().domain([height_user, 0]);
+var x_axis_user = d3.axisTop(x_user),
+		y_axis_user = d3.axisLeft(y_user);
+
+var context_user = user_svg.append('g');
+d3.csv("data/processed/scrape/3-31/common-users-temp.csv",
+									users_format, function(err, users) {
+
+		// set domains
+		x_user.domain([0, d3.max(users, function(d) { return d.count; })]);
+		y_user.domain(users.map(function(d) { return d.username; }));
+
+		/* add axes
+		context_user.append('g')
+			.attr("class", "axis axis--x")
+			.attr("transform", "translate(0," + margin_user.top + ")")
+			.call(x_axis_user);
+		context_user.append('g')
+			.attr('class', 'axis axis--y')
+			.call(y_axis_user);
+		*/
+});
+function users_format(d) {
+	d.count = +d.count;
+	return d;
+}
+
+</script>
+</body>
+</html>
