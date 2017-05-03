@@ -83,6 +83,34 @@
 </div>
 
 <script>
+/////////////////////////////////
+////////  DATA  //////////
+/////////////////////////////////
+
+// counties
+d3.json('data/external/maps/us-10m.v1.json', function(map_file) {
+	var temp = topojson.feature(map_file, map_file.objects.counties);
+	//counties_data = temp;
+	this.counties_data = temp;
+});
+
+// world, countries
+d3.json('data/external/maps/110m.json', function(err, map_file) {
+	this.countries = topojson.feature(map_file, map_file.objects.countries);
+});
+
+// Test [MAP] tweets
+d3.csv('data/processed/scrape/3-31/test-tweets.csv', format_map_tweets, function(err, tweets) {
+		if (err) throw err;
+		this.tweets = tweets;
+		map_tweets(tweets);
+});
+
+
+
+
+
+
 
 /////////////////////////////////
 ////////  global vars  //////////
@@ -133,16 +161,6 @@ d3.json('data/external/maps/110m.json', function(err, map_file) {
 */
 
 // Add tweets CANVAS
-d3.json('data/external/maps/110m.json', function(err, map_file) {
-	this.countries = topojson.feature(map_file, map_file.objects.countries);
-});
-d3.csv('data/processed/scrape/3-31/test-tweets.csv', format_map_tweets, function(err, tweets) {
-		if (err) throw err;
-
-		this.tweets = tweets;
-		map_tweets(tweets);
-});
-
 function map_tweets(data) {
 
 	var canvas0 = d3.selectAll('canvas');
