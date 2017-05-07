@@ -34,6 +34,9 @@ A collection of helpful links and prior work.
 - [Slides from rluta](https://rluta.github.io/d3-realtime/)
 - [Real time mapping by Twitter](https://blog.twitter.com/2014/tweet-emotion-real-time-tweet-analysis-with-pubnub-data-stream)
 
+**Tutorials**
+- [D3 and Canvas](http://www.datamake.io/blog/d3-canvas-full)
+
 
 #### Natural Language Processing
 
