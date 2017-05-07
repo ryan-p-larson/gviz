@@ -104,3 +104,22 @@ def format_tweet_date(t):
     corrected_dt = dt - timedelta(seconds=time_tuple[-1])
     # return just the day
     return corrected_dt.date()
+
+# SQL
+def save_df_to_sql(df, conn):
+    try:
+        df.to_sql("Raw", conn, if_exists="append", index=False)
+    except Exception as e:
+        print ('Raw', e)
+    try:
+        df[['tweetID', 'date', 'message', 'retweet', 'longitude', 'latitude']].to_sql("Tweets", conn, if_exists="append", index=False)
+    except Exception as e:
+        print ('tweets', e)
+    try:
+        df[['username', 'tweetID']].to_sql("Users", conn, if_exists="append", index=False)
+    except Exception as e:
+        print ('users', e)
+    try:
+        df[['date', 'tweetID']].to_sql("Dates", conn, if_exists="append", index=False)
+    except Exception as e:
+        print ('dates', e)
