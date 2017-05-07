@@ -1,0 +1,495 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "# Filtering\n",
+    "\n",
+    "Traverse the tweets and output a filtered subset of the tweets to use."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [],
+   "source": [
+    "# Libraries\n",
+    "\n",
+    "%run utilities.py\n",
+    "from multiprocessing import Pool  # faster\n",
+    "from time import time as time     # timing"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "#### Functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [],
+   "source": [
+    "# Functions\n",
+    "def parallelize_series(series, func):\n",
+    "    pool = Pool(6)\n",
+    "\n",
+    "    df = pool.map(func, series)\n",
+    "\n",
+    "    pool.close()\n",
+    "    pool.join()\n",
+    "    return df\n",
+    "\n",
+    "def filter_tweet_df(in_f):\n",
+    "    \"\"\"\n",
+    "    Formats and returns a dataframe of tweets\n",
+    "    \"\"\"\n",
+    "    conversions = {'retweet': lambda x: 1 if (x=='RT') else x,\n",
+    "                  'date': lambda t: t.split()[1] +'-'+ t.split()[2] +'-'+ t.split()[-1]\n",
+    "                  }\n",
+    "    dt_parser = lambda x: pd.to_datetime(x, format=\"%b-%d-%Y\")\n",
+    "    \n",
+    "    raw_df = pd.read_csv(in_f, usecols=cols_scrape, \n",
+    "                         low_memory=False, engine='c', # optimization\n",
+    "                        converters=conversions)\n",
+    "    \n",
+    "    # Drop rows that'll give us trouble\n",
+    "    raw_df.dropna(subset=['date', 'longitude', 'latitude'], how='any', inplace=True)\n",
+    "    raw_df['date'] = dt_parser(raw_df['date'])\n",
+    "    \n",
+    "    return raw_df\n",
+    "\n",
+    "def process_file(f):\n",
+    "    \"\"\"\n",
+    "    Takes a file, gets all of the names/dirs and filters it. \n",
+    "    \"\"\"\n",
+    "    raw_f = f.split('/')[-1]\n",
+    "    new_f_name = format_new_file(f, 'filtered')\n",
+    "    new_f_path = name_file_path(new_f_name, outdir) ## HARD coded directory, just need to rerun\n",
+    "    \n",
+    "    try:\n",
+    "        df = filter_tweet_df(f)\n",
+    "        df.to_csv(new_f_path, index=False)\n",
+    "        \n",
+    "        print (raw_f + ': x')\n",
+    "        return {'f': raw_f, 'succeed': True, 'new_f': new_f_path}\n",
+    "    except Exception as e:\n",
+    "        print (\"Couldn't read: \\t{}\".format(f), e)\n",
+    "        return {'f': raw_f, 'succeed': False, 'new_f': new_f_path}"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "#### Variables"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Directory already exists, but you can still have the file name\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Grab all of the files\n",
+    "raw_tweets = ls_files_list(external_scrape_dir)\n",
+    "\n",
+    "# new directory\n",
+    "outdir = make_new_dir_date(processed_finals_dir)\n",
+    "\n",
+    "# combined files in the new dir\n",
+    "combined_f = name_file_path('combined.csv', outdir)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "#### Run. That. Shit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true,
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+<<<<<<< HEAD
+      "Couldn't read: \t../../data/external/scrape/tweets_immigrant_34322.csv list index out of range\n",
+      "tweets_immigrant_34323.csv: x\n",
+      "Couldn't read: \t../../data/external/scrape/tweets_immigrant_34324.csv list index out of range\n",
+      "tweets_immigrant_34321.csv: x\n",
+      "tweets_immigrant_34319.csv: x\n",
+      "tweets_immigrant_34318.csv: x\n",
+      "tweets_immigrant_34320.csv: x\n",
+      "tweets_immigrant_34317.csv: x\n",
+      "6 / 266 files were filtered.\n",
+      "5 files took: 9.74568223953247 seconds.\n"
+=======
+      "Couldn't read: \t../../data/external/scrape/tweets_immigrant_34322.csv\n",
+      "Couldn't read: \t../../data/external/scrape/tweets_immigrant_34324.csv\n",
+      "Couldn't read: \t../../data/external/scrape/tweets_immigrant_34345.csv\n"
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+     ]
+    }
+   ],
+   "source": [
+    "# set up\n",
+    "start = time()  # timer\n",
+    "num_files = len(raw_tweets)\n",
+    "\n",
+    "# execution\n",
+    "log_list = parallelize_series(raw_tweets[2:10], process_file)\n",
+    "log_df = pd.DataFrame(log_list)\n",
+    "\n",
+    "# clean up\n",
+    "end = time()\n",
+    "num_converted = log_df[log_df['succeed'] == True].shape[0]\n",
+    "\n",
+    "# reporting\n",
+    "print ('{} / {} files were filtered.'.format(num_converted, (num_files-num_converted)))\n",
+    "print ('{} files took: {} seconds.'.format(5, end-start))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+<<<<<<< HEAD
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+=======
+   "metadata": {},
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+   "source": [
+    "#### Log File"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>f</th>\n",
+       "      <th>new_f</th>\n",
+       "      <th>succeed</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>tweets_immigrant_34317.csv</td>\n",
+       "      <td>../../data/processed/finals/5-7/tweets_immigra...</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>tweets_immigrant_34318.csv</td>\n",
+       "      <td>../../data/processed/finals/5-7/tweets_immigra...</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>tweets_immigrant_34319.csv</td>\n",
+       "      <td>../../data/processed/finals/5-7/tweets_immigra...</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>tweets_immigrant_34320.csv</td>\n",
+       "      <td>../../data/processed/finals/5-7/tweets_immigra...</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>tweets_immigrant_34321.csv</td>\n",
+       "      <td>../../data/processed/finals/5-7/tweets_immigra...</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                            f  \\\n",
+       "0  tweets_immigrant_34317.csv   \n",
+       "1  tweets_immigrant_34318.csv   \n",
+       "2  tweets_immigrant_34319.csv   \n",
+       "3  tweets_immigrant_34320.csv   \n",
+       "4  tweets_immigrant_34321.csv   \n",
+       "\n",
+       "                                               new_f succeed  \n",
+       "0  ../../data/processed/finals/5-7/tweets_immigra...    True  \n",
+       "1  ../../data/processed/finals/5-7/tweets_immigra...    True  \n",
+       "2  ../../data/processed/finals/5-7/tweets_immigra...    True  \n",
+       "3  ../../data/processed/finals/5-7/tweets_immigra...    True  \n",
+       "4  ../../data/processed/finals/5-7/tweets_immigra...    True  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "log_f = name_file_path('log.csv', outdir)\n",
+    "log_df.to_csv(log_f, index=False)\n",
+    "\n",
+    "# take a peek\n",
+    "log_df.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+<<<<<<< HEAD
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+=======
+   "metadata": {},
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+   "source": [
+    "#### Combine all files"
+   ]
+  },
+  {
+   "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 6,
+=======
+   "execution_count": 4,
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+<<<<<<< HEAD
+   "outputs": [],
+   "source": [
+    "# grab only the succesful files\n",
+    "good_fs = log_df[log_df.succeed == True]['new_f'].tolist()"
+=======
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "../../data/\r\n",
+      "├── canonical\r\n",
+      "│   ├── test.db\r\n",
+      "│   └── tweets.db\r\n",
+      "├── external\r\n",
+      "│   ├── classifier\r\n",
+      "│   ├── hatebase\r\n",
+      "│   ├── maps\r\n",
+      "│   └── scrape -> /data/backed_up/twitter/data/Immigrant/\r\n",
+      "└── processed\r\n",
+      "    ├── class\r\n",
+      "    ├── finals\r\n",
+      "    └── scrape\r\n",
+      "\r\n",
+      "10 directories, 2 files\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "!tree -L 2 ../../data/"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Directory already exists, but you can still have the file name\n"
+     ]
+    }
+   ],
+   "source": [
+    "indir = make_new_dir_date(processed_finals_dir)\n",
+    "\n",
+    "log_df = pd.read_csv((indir + 'log.csv'))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "# grab only the succesful files\n",
+    "#good_fs = log_df[log_df.succeed == True]['new_f'].tolist()\n",
+    "good_fs = ls_files_list(indir)\n",
+    "\n",
+    "combined_f = name_file_path('combined.csv', indir)"
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+   ]
+  },
+  {
+   "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 7,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [],
+   "source": [
+    "## write it out\n",
+    "# first to create headers\n",
+    "(pd.read_csv(good_fs[0], low_memory=False, engine='c')).to_csv(combined_f, index=False)\n",
+=======
+   "execution_count": 31,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "../../data/processed/finals/5-6/log.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "## write it out\n",
+    "# first to create headers\n",
+    "(pd.read_csv(good_fs[0])).to_csv(combined_f, index=False)\n",
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+    "\n",
+    "with open(combined_f, 'a') as f:\n",
+    "    for f_ in good_fs:\n",
+    "        # skip the log\n",
+    "        if (f_.split('/')[-1] != 'log.csv'):\n",
+<<<<<<< HEAD
+    "            (pd.read_csv(f_, low_memory=False, engine='c')).to_csv(f, index=False, header=False)"
+=======
+    "            (pd.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'../../data/processed/finals/5-6/combined.csv'"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "combined_f"
+>>>>>>> 8111d85ca0d62f9db1beb8dbfb9ad17d0574b421
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
