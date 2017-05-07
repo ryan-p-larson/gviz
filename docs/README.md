@@ -36,6 +36,7 @@ A collection of helpful links and prior work.
 
 **Tutorials**
 - [D3 and Canvas](http://www.datamake.io/blog/d3-canvas-full)
+- [Pandas and sqlite3](https://www.dataquest.io/blog/python-pandas-databases/)
 
 
 #### Natural Language Processing
