@@ -100,8 +100,8 @@ def save_df_to_sql(df, conn):
         df[['date', 'tweetID']].to_sql("Dates", conn, if_exists="append", index=False)
     except Exception as e:
         print ('dates', e)
-        
-        
+
+
 ## Directories
 # top level
 root_dir = '../../'
@@ -116,6 +116,7 @@ processed_data_dir = data_dir + 'processed/'
 processed_classifier_dir = processed_data_dir + 'class/'
 processed_scrape_dir = processed_data_dir + 'scrape/'
 processed_finals_dir = processed_data_dir + 'finals/'
+processed_web_dir = processed_data_dir + 'web/'
 
 canonical_data_dir = data_dir + 'canonical/'
 
