@@ -20,34 +20,11 @@ from email.utils import parsedate_tz
 import pandas as pd
 
 
-## Directories
-# top level
-root_dir = '../../'
-viz_dir = root_dir + 'viz/'
-data_dir = root_dir + 'data/'
-# data subdirs
-external_data_dir = data_dir + 'external/'
-external_scrape_dir = external_data_dir + 'scrape/'
-external_maps_dir = external_data_dir + 'maps/'
-
-processed_data_dir = data_dir + 'processed/'
-processed_classifier_dir = processed_data_dir + 'class/'
-processed_scrape_dir = processed_data_dir + 'scrape/'
-processed_finals_dir = processed_data_dir + 'finals/'
-
-## Files
-# ext
-classifier_f = external_data_dir + 'classifier/twitter-hate-speech-classifier.csv'
-hate_speech_f = external_data_dir + 'hatebase/hatebase.csv'
-
 
 ## Variables
 
 # twitter scrape vars
 cols_scrape = ['date', 'username', 'tweetID', 'message', 'retweet', 'longitude', 'latitude']
-
-
-
 
 
 ## Helpers
@@ -123,3 +100,32 @@ def save_df_to_sql(df, conn):
         df[['date', 'tweetID']].to_sql("Dates", conn, if_exists="append", index=False)
     except Exception as e:
         print ('dates', e)
+        
+        
+## Directories
+# top level
+root_dir = '../../'
+viz_dir = root_dir + 'viz/'
+data_dir = root_dir + 'data/'
+# data subdirs
+external_data_dir = data_dir + 'external/'
+external_scrape_dir = external_data_dir + 'scrape/'
+external_maps_dir = external_data_dir + 'maps/'
+
+processed_data_dir = data_dir + 'processed/'
+processed_classifier_dir = processed_data_dir + 'class/'
+processed_scrape_dir = processed_data_dir + 'scrape/'
+processed_finals_dir = processed_data_dir + 'finals/'
+
+canonical_data_dir = data_dir + 'canonical/'
+
+## Files
+# ext
+classifier_f = external_data_dir + 'classifier/twitter-hate-speech-classifier.csv'
+hate_speech_f = external_data_dir + 'hatebase/hatebase.csv'
+# maps
+counties_f = name_file_path('attributes.json', external_maps_dir)
+states_f = name_file_path('state.geo.json', external_maps_dir)
+world_f = name_file_path('110m.json', external_maps_dir)
+# DB
+tweet_db = name_file_path('tweets.db', canonical_data_dir)
