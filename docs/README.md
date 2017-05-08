@@ -37,6 +37,10 @@ A collection of helpful links and prior work.
 **Tutorials**
 - [D3 and Canvas](http://www.datamake.io/blog/d3-canvas-full)
 - [Pandas and sqlite3](https://www.dataquest.io/blog/python-pandas-databases/)
+- [Canvas interactivity](https://bl.ocks.org/veltman/1b43f61887e89c371f1c8c73341540a3)
+
+**Inspiration**
+- [NY Times Electoral Map](https://www.nytimes.com/elections/2012/electoral-map.html)
 
 
 #### Natural Language Processing
