@@ -1,0 +1,17 @@
+Data Sources
+
+This data was produced by the United States Department of Agriculture’s Economic Research Service.  Obtained the following employment attributes and their county-level data: total labor force population, total employed population, total unemployed population, unemployment rate and Median Household Income in U.S. dollars.  The employment attribute data was measured in 2015.  Also obtained the following education attributes and their county-level data: Percent of population with less than a High School diploma, Percent of the population with only a high school diploma, percent of the population with some college experience and percent of population with a bachelor’s degree or higher.  The education attributes are displayed as an average from 2011-2015.
+https://www.ers.usda.gov/data-products/county-level-data-sets/
+
+This data set was produced by the United States Census Bureau and obtained via the American Fact Finder website.  Each U.S. County’s total population data was obtained.  Data regarding race was also obtained.  The total population was broken down into these racial attributes: White, Black, American Indian, Asian, Pacific Islander, and Multi Race.  The sum of all of the racial attributes would equal the total population, so each individual would only be included in one of the racial attributes.  All of this data comes from the 2015 ACS 1-year estimates.  
+https://factfinder.census.gov/faces/nav/jsf/pages/searchresults.xhtml?refresh=t#acsST
+
+This data set provided information on the 2016 U.S. Presidential election.  The attributes taken from this data set and used were all measured at the county level.  The following attributes were obtained and used: total democrat votes, total republican votes, and total votes by county.  The percentage of votes for both democrat and republican on the county level were also used.  Lastly, the vote differential between the leading party and the runner up, and the percent point differential were obtained.  The raw data was obtained from TownHall.com, which was then cleaned and made accessible by GitHub user: tonmcg.  
+https://github.com/tonmcg/County_Level_Election_Results_12-16
+https://townhall.com/election/2016/president/
+
+The Geospatial data used for this project was obtained from the United States Census Bureau.  The cartographic boundary shapefiles were created in 2016.  A shapefile of the United States Counties, as well as a shapefile of the 50 states of the United States was used.  
+https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html
+
+
+
