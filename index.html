@@ -7,408 +7,134 @@
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
 
-    <!-- Bootstrap and jQuery -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+  <!-- Bootstrap and jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 	<!-- D3.js + TopoJson -->
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
 	<script src="https://d3js.org/topojson.v2.min.js"></script>
+	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
 	<!-- D3 legend to make it easier -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.21.0/d3-legend.min.js"></script>
 	<!-- Simple statistics for Jenks natural breaks -->
 	<script src="https://unpkg.com/simple-statistics@2.3.0/dist/simple-statistics.min.js"></script>
 
 	<!-- Styling -->
-	<style>
-		#chart-map {
-			height: 500px;
-		}
-		.bar {
-			fill: steelblue;
-		}
-		.axis--y .domain {
-			display: none;
-		}
-		canvas {
-			position: absolute;
-		}
-		input {
-		  background: transparent;
-		  border: none;
-		  margin: 10px 384px;
-		  width: 180px;
-		  font-size: 18px;
-		  padding: 6px;
-		  text-align: center;
-		}
-	</style>
+	<link href="src/style.css" rel="stylesheet">
 </head>
 
 <body>
-
 <!-- container -->
 <div class="container">
   <br>
 	<div class="row">
 		<div class="panel panel-default">
+
           <div class="panel-heading">
-          	<h2>GeoVisualization <strong>Project</strong></h2>
+          	<h1>GeoVisualization <strong>Project</strong></h1>
           </div>
 
           <div class="panel-body">
-          	<div class="row">
-							<div class="col-xs-9"><input autofocus maxlength=5 placeholder="type a hashtag"></div>
-            	<div class="col-xs-9" id="chart-map"></div>
-              <div class="col-xs-3" id="chart-users"></div>
+
+						<div class="row">
+							<div class="col-xs-12">
+								<h3>Introduction</h3>
+								<p>This is dummy text, etc etc etc</p>
+								<h5>Data and Methodology</h5>
+							</div>
+						</div>
+
+          	<div class="row" id='world-map-row'>
+							<div class="col-xs-12">
+								<h3>World Tweets Map</h3> <input autofocus maxlength=5 placeholder="type a hashtag">
+							</div>
+            	<div class="col-xs-12" id="chart-world"></div>
             </div>
-            <div class="row">
-            	<div class="col-xs-9" id="chart-timeline"></div>
-                <div class="col-xs-3" id="chart-table"></div>
+            <div class="row" id='timeline-row'>
+            	<div class="col-xs-12" id="chart-timeline"></div>
             </div>
+
+						<hr>
+
+						<div class="row">
+							<div class="col-xs-12">
+								<h3>User Tweets</h3>
+								<p>This is dummy text, etc etc etc</p>
+							</div>
+							<div class="col-xs-6" id="chart-users"></div>
+							<div class="col-xs-6" id="chart-table"><div>
+								<table class="table table-hover table-fixed">
+							    <thead>
+							      <tr>
+							        <th>Message</th>
+							        <th>Retweet</th>
+							        <th>Date</th>
+							      </tr>
+							    </thead>
+							    <tbody id='chart-table-messages'>
+									</tbody>
+								</table>
+							</div>
+            </div>
+					</div>
+
+					<hr>
+
+					<div class="row">
+						<div class="col-xs-9 bottom-column">
+							<h3>U.S. Counties</h3>
+							<p>This is dummy text, etc etc etc</p>
+						</div>
+						<div class="col-xs-3 bottom-column pull-right">
+							<span><b>X Attribute: </b><select id="county-attributes">
+									<option value="Population" selected="selected">Population</option>
+									<option value="Total_Vote">Total Votes</option>
+									<option value="Pct_Dem">Percentage Democratic Vote</option>
+									<option value="Pct_Gop">Percentage Republican Vote</option>
+									<option value="Unemployme">Unemployment Rate</option>
+							</select></span>
+						</div>
+
+						<div class="col-xs-9" id="chart-county"></div>
+						<div class="col-xs-3" id="chart-scatter"></div>
+					</div>
+
             <div class="row">
             	<div class="col-xs-12">
-								<h4>Notes</h4>
+								<h3>Notes</h3>
 								<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 							</div>
             </div>
           </div>
+
           <div class="panel-footer">
 						<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
 					</div>
+
         </div>
     </div>
 </div>
 
+<script src="src/main.js"></script><!-- read in the variables -->
+<script src="src/functions.js"></script><!-- Now get functions (depend on vars) -->
 <script>
-/////////////////////////////////
-////////  DATA  //////////
-/////////////////////////////////
 
-// counties
-d3.json('data/external/maps/us-10m.v1.json', function(map_file) {
-	var temp = topojson.feature(map_file, map_file.objects.counties);
-	//counties_data = temp;
-	this.counties_data = temp;
-});
+/* ~Users~ */
+//this.top_users = get_top_users(tweets);		// bar chart
+//set_chart_users(top_users);
+//this.top_user_messages = get_top_user_messages(top_users[0].key, tweets);
+//set_table_users(top_user_messages) // table
 
-// world, countries
-d3.json('data/external/maps/110m.json', function(err, map_file) {
-	this.countries = topojson.feature(map_file, map_file.objects.countries);
-});
-
-// Test [MAP] tweets
-d3.csv('data/processed/scrape/3-31/test-tweets.csv', format_map_tweets, function(err, tweets) {
-		if (err) throw err;
-		this.tweets = tweets;
-		map_tweets(tweets);
-});
-
-
-
-
-
-
-
-/////////////////////////////////
-////////  global vars  //////////
-/////////////////////////////////
-var col_xs_width = d3.select('#chart-map')
-		.node().getBoundingClientRect().width;
-
-/////////////////////////////////
-////////  map first  ////////////
-/////////////////////////////////
-var margin_map = {top: 20, right: 20, bottom: 20, left: 20},
-	mapWidth = col_xs_width - margin_map.left - margin_map.right,
-	mapHeight = (mapWidth / 1.8) - margin_map.top - margin_map.bottom;
-
-var map_tweet_time_parse = d3.isoParse
-
-var geoProjection = d3.geoMercator()
-		.center([20, -15])
-		.scale(150),
-geoPath = d3.geoPath()
-		.pointRadius(2)
-		.projection(geoProjection);
-
-///////// OLD SVG WAY
-/*
-var map_svg = d3.select('#chart-map')
-		.append('svg')
-		.attr('width', mapWidth + margin_map.left + margin_map.right)
-		.attr('height', mapHeight + margin_map.top + margin_map.bottom)
-			.append('g')
-		.attr('transform', 'translate(' + margin_map.left + ',' + margin_map.top + ')');
-
-d3.json('data/external/maps/110m.json', function(err, map_file) {
-		if (err) console.log(err);
-
-		var g = map_svg.append("g"),
-		countries = topojson.feature(map_file, map_file.objects.countries).features;
-
-		g.selectAll("path.land")
-			.data(countries)
-			.enter()
-			.append("path")
-			.attr("class", 'land')
-			.attr("id", function(d) { return 'country-' + d.name; })
-			.attr("d", geoPath);
-
-	});
-*/
-
-// Add tweets CANVAS
-function map_tweets(data) {
-
-	var canvas0 = d3.selectAll('canvas');
-	var canvas1 = d3.select("#chart-map").insert("canvas", "input")
-			.attr("width", mapWidth)
-			.attr("height", mapHeight)
-			.style("opacity", 0)
-			.style('display', 'absolute');
-
-	// Grab the context so we can start putting things down
-	var context = canvas1.node().getContext("2d");
-
-	// Draw countries
-	context.globalAlpha = 0.4;
-	geoPath.context(context);
-	context.beginPath();
-	geoPath(this.countries);
-	context.stroke();
-
-
-	context.fillStyle = "#fff";
-	context.fillRect(0, 0, mapWidth, mapHeight);
-
-		// Render the active tweets.
-	context.globalAlpha = 1;
-	context.fillStyle = "#f00";
-	data.forEach(function(d) {
-		if (d.x && d.y) context.fillRect(d.x, d.y, 2, 2);
-	});
-
-	// Instantiate new map
-	canvas1.transition()
-		.duration(250)
-		.style("opacity", 1)
-		.on("end", function() { canvas0.remove(); });
+function initialize() {
+	set_world();
+	set_county();
 }
 
-function map_tweets_extent(start, end) {
-
-	//data = tweets;
-	data = this.example;
-
-	var canvas0 = d3.selectAll('canvas');
-	var canvas1 = d3.select("#chart-map").insert("canvas")
-			.attr("width", mapWidth)
-			.attr("height", mapHeight)
-			.style("opacity", 0);
-
-	var context = canvas1.node().getContext("2d");
-
-	// Draw countries
-	context.globalAlpha = 0.4;
-	geoPath.context(context);
-	context.beginPath();
-	geoPath(this.countries);
-	context.stroke();
-
-	// Instantiate rect
-	context.fillStyle = "#fff";
-	context.fillRect(0, 0, mapWidth, mapHeight);
-
-		// Render the active zipcodes.
-	context.globalAlpha = 1;
-	context.fillStyle = "#f00";
-	data.forEach(function(d) {
-		if (d.date > start && d.date < end) {
-			if (d.x && d.y) context.fillRect(d.x, d.y, 2, 2);
-		}
-	});
-
-	canvas1.transition()
-		.duration(350)
-		.style("opacity", 1)
-		.on("end", function() { canvas0.remove(); });
-}
-
-function format_map_tweets(d) {
-	// Date first
-	d.date = map_tweet_time_parse(d.date)
-	// Then location
-	var p = geoProjection([+d.longitude, +d.latitude]);
-	//if (p) d.x = Math.round(p[0]), d.y = Math.round(p[1]);
-	if (p) d.x = p[0], d.y = p[1];
-	return d;
-}
-/////////////////////////////////
-////////  Tweet timeline  ///////
-/////////////////////////////////
-var margin_timeline = {top: 20, right: 20, bottom: 20, left: 40},
-	width_timeline = mapWidth - margin_timeline.left - margin_timeline.right,
-	height_timeline = (mapHeight / 2) - margin_timeline.top - margin_timeline.bottom;
-
-var timeline_svg = d3.select('#chart-timeline')
-	.append('svg')
-	.attr('width', width_timeline + margin_timeline.left + margin_timeline.right)
-	.attr('height', height_timeline + margin_timeline.top + margin_timeline.bottom)
-		.append('g')
-	.attr('transform', 'translate(' + margin_timeline.left + ',' + margin_timeline.top + ')');
-
-var parse_timeline_date = d3.timeParse("%Y-%m-%d"),
-	parse_timeline_count = d3.format(".0s");
-
-var x_timeline = d3.scaleTime().rangeRound([0, mapWidth]),
-	y_timeline = d3.scaleLinear().range([height_timeline, 0]);
-
-var x_axis_timeline = d3.axisBottom(x_timeline),
-	y_axis_timeline = d3.axisLeft(y_timeline)
-		.tickFormat(parse_timeline_count);
-
-var brush_timeline = d3.brushX()
-	.extent([[0, 0], [width_timeline, height_timeline]])
-	// Add the listener later when we have data
-	.on("end", brushed_timeline);
-
-var context_timeline = timeline_svg.append("g")
-	.attr("class", "context");
-
-// Read in timeline tweets
-d3.csv('data/processed/scrape/4-4/day-agg.csv', timeline_tweet_format, function(err, tweets) {
-	if (err) throw err;
-
-	// set domains
-	x_timeline.domain(d3.extent(tweets, function(d) { return d.day; }));
-	y_timeline.domain([0, d3.max(tweets, function(d) { return d.count; })]);
-
-	// Add bars
-	context_timeline.selectAll('.timeline-day')
-		.data(tweets)
-		.enter().append('rect')
-		.attr('class', 'bar timeline-day')
-		.attr('x', function(d) { return x_timeline(d.day); })
-		.attr('y', function(d) { return y_timeline(d.count); })
-		.attr('width', width_timeline / (tweets.length + 20))
-		.attr('height', function(d) { return (height_timeline) - y_timeline(d.count); });
-
-	// add axes
-	context_timeline.append('g')
-		.attr("class", "axis axis--x")
-		.attr("transform", "translate(0," + (height_timeline) + ")")
-		.call(x_axis_timeline);
-	context_timeline.append('g')
-		.attr('class', 'axis axis--y')
-		.call(y_axis_timeline)
-		.append('text')					// Add y label
-			.attr("x", 4)
-			.attr("y", y_timeline(y_timeline.ticks().pop()) + 0.5)
-			.attr("dy", "0.32em")
-			.attr("fill", "#000")
-			.attr("font-weight", "bold")
-			.attr("text-anchor", "start")
-			.text("Tweets per Day");
-
-	// add brush
-	context_timeline.append('g')
-		.attr('class', 'brush')
-		.call(brush_timeline);
-
-	//////// FAKE data
-	var fake_gps = d3.randomUniform(-90, 90);
-	var date_range = d3.timeDays(x_timeline.domain()[0], x_timeline.domain()[1], 1);
-	this.example = date_range.map(function(d) {
-		d.date = d;
-		d.x = fake_gps();
-		d.y = fake_gps();
-		return d;
-	});
-
-
-
-});
-function timeline_tweet_format(d) {
-	// format the tweet's date and int
-	d.count = +d.count;
-	d.day = parse_timeline_date(d.day);
-	return d;
-}
-function brushed_timeline() {
-	if (!d3.event.sourceEvent) return; // Only transition after input.
-	if (!d3.event.selection) {
-		return map_tweets(this.tweets);
-	}; // Ignore empty selections.
-	// RESET here
-
-	var d0 = d3.event.selection.map(x_timeline.invert),
-      d1 = d0.map(d3.timeDay.round);
-
-	// If empty when rounded, use floor & ceil instead.
-  if (d1[0] >= d1[1]) {
-    d1[0] = d3.timeDay.floor(d0[0]);
-    d1[1] = d3.timeDay.offset(d1[0]);
-  }
-
-  d3.select(this).transition().call(d3.event.target.move, d0.map(x_timeline));
-
-	// Select the points on the map here
-	map_tweets_extent(d1[0], d1[1]);
-}
-
-/////////////////////////////////
-////////  User barchart  ////////
-/////////////////////////////////
-var margin_user = {left: 75, top:20, right:20, bottom: 20},
-		width_user = (col_xs_width / 3) - margin_user.left - margin_user.right,
-		height_user = mapHeight;
-
-var user_svg = d3.select('#chart-users').append('svg')
-		.attr('width', width_user + margin_user.left + margin_user.right)
-		.attr('height', height_user + margin_user.top + margin_user.bottom)
-			.append('g')
-		.attr('transform', 'translate(' + margin_user.left + ',' + margin_user.top + ')'),
-		context_user = user_svg.append('g');
-
-var x_user = d3.scaleLinear().range([0, width_user]),
-		y_user = d3.scaleBand().range([0, height_user]).padding(0.4);
-var x_axis_user = d3.axisTop(x_user).ticks(4),
-		y_axis_user = d3.axisLeft(y_user);
-
-d3.csv("data/processed/scrape/3-31/common-users-temp.csv",
-									users_format, function(err, users) {
-
-		// set domains
-		x_user.domain([0, d3.max(users, function(d) { return d.count; })]);
-		y_user.domain(users.map(function(d) { return d.username; }));
-
-		context_user.selectAll('.bar')
-			.data(users)
-			.enter().append('rect')
-				.attr("class", "bar")
-				.attr("x", function(d) { return x_user(0); })
-				.attr("width", function(d) { return  x_user(d.count); })
-				.attr("y", function(d) { return y_user(d.username); })
-				.attr("height", y_user.bandwidth());
-
-		// add axes
-		context_user.append('g')
-			.attr("class", "axis axis--x")
-			.attr("transform", "translate(0," + 0 + ")")
-			.call(x_axis_user);
-		context_user.append('g')
-			.attr('class', 'axis axis--y')
-			.call(y_axis_user);
-
-});
-function users_format(d) {
-	d.count = +d.count;
-	return d;
-}
-
+window.onload = initialize;
 </script>
 </body>
 </html>
