@@ -50,54 +50,81 @@ function draw_bars(data, x, y) {
 	y_county_bar.domain(data.map(function(d) { return d.properties[y]; }));
 
 	// change axes
-	context_user.select('#bar-x').transition(100).call(x_county_bar);
-	context_user.select('#bar-y').transition(100).call(y_county_bar);
+	context_bar.select('#bar-x').transition(100).style('opacity', 0).remove();
+	context_bar.select('#bar-y').transition(100).style('opacity', 0).remove();
+	context_bar.append('g')		// scatter axes
+		.attr("class", "axis axis--x")
+		.attr('id', 'bar-x')
+		.attr("transform", "translate(0," + 0 + ")")
+		.call(x_axis_county_bar);
+	context_bar.append('g')
+		.attr('class', 'axis axis--y')
+		.attr('id', 'bar-y')
+		.call(y_axis_county_bar);
 
-	var county_bars = context_user.selectAll('.bar')
-			.remove()
-			.exit()
-			.data(data);
+	var county_bars = svg_bar.selectAll('.bar')
+			.data(data, function(d) { return d.County_Nam; });
+
+	county_bars.exit().transition().duration(100)
+			.attr("y", y_county_bar(0))
+			.attr('height', 0)
+			.style('fill-opacity', 0)
+			.remove();
 
 	county_bars.enter().append('rect')
-		.attr("class", "bar")
+		.attr('class', function(d) { return 'bar FIPS-' + d.properties.FIPS; })
 		.attr("x", function(d) { return x_county_bar(0); })
 		.attr("width", function(d) { return  x_county_bar(d.properties[x]); })
 		.attr("y", function(d) { return y_county_bar(d.properties[y]); })
-		.attr("height", y_county_bar.bandwidth());
+		.attr("height", y_county_bar.bandwidth())
+		.style('fill', function(d) { return color_county(d.properties[x]); })
+		.on('mouseover', function(d) { highlight_county(d, x); })
+		.on('mousemove', move_county)
+		.on('mouseout', unhighlight_county);
+
+	county_bars.transition().duration(100)
+			.attr("width", function(d) { return  x_county_bar(d.properties[x]); })
+			.attr("y", function(d) { return y_county_bar(d.properties[y]); });
 }
 function draw_scatter(data, x, y) {
-
 	var t = d3.transition().duration(100);
-
-	color_county.domain(d3.map(data, function(d) { return d.properties['Tweets']; }));
 	x_scatter.domain([0, d3.max(data, function(d) { return d.properties[x]; })]);
 	y_scatter.domain([0, d3.max(data, function(d) { return d.properties[y]; })]);
 
 	// change axes
-	context_scatter.select('#scatter-x').call(x_scatter);
-	context_scatter.select('#scatter-y').call(y_scatter);
+	context_scatter.select('#scatter-x').transition(100).style('opacity', 0).remove();
+	context_scatter.select('#scatter-y').transition(100).style('opacity', 0).remove();
+	context_scatter.append('g')		// scatter axes
+	  .attr("class", "axis axis--x")
+	  .attr('id', 'scatter-x')
+	  .attr("transform", "translate(0," + height_scatter + ")")
+	  .call(x_axis_scatter);
+	context_scatter.append('g')
+	  .attr('class', 'axis axis--y')
+	  .attr('id', 'scatter-y')
+	  .call(y_axis_scatter);
 
 	var join = context_scatter.selectAll('.county-pt')
 			.data(data.filter(function(d) {
 				return (d.properties[x]) && (d.properties[y]);
-			}), function(d) { return d; });
+			}), function(d) { return d.County_Nam; });
 
-	join.exit()
-		.attr("class", "exit")
-  .transition(t)
-    .style("fill-opacity", 0)
-    .remove();
-	join.attr('class', 'update')
-		.attr("cx", function(d) { return x_scatter(d.properties[x]); })
-		.attr("cy", function(d) { return y_scatter(d.properties[y]); });
+	join.exit().transition(t)
+		.attr('cx', x_scatter(0)).attr('cy', y_scatter(0)).attr('r', 0)
+		.style("opacity", 0).remove();
 	join.enter().append('circle')
 		.attr('class', function(d) { return 'county-pt FIPS-' + d.properties.FIPS; })
 		.attr("cx", function(d) { return x_scatter(d.properties[x]); })
 		.attr("cy", function(d) { return y_scatter(d.properties[y]); })
-		.attr("r", 3)
-		.on('mouseover', highlight_county)
+		.attr("r", 3.5)
+		.style('fill', '#ccc')
+		.style('opacity', 0.7)
+		.on('mouseover', function(d) { highlight_county(d, y); })
+		.on('mousemove', move_county)
 		.on('mouseout', unhighlight_county);
-
+	join.attr('class', 'update')
+		.attr("cx", function(d) { return x_scatter(d.properties[x]); })
+		.attr("cy", function(d) { return y_scatter(d.properties[y]); });
 }
 
 
@@ -108,9 +135,8 @@ function set_world() {
 	});
 	d3.csv('data/processed/finals/5-7/combined.csv', format_world_tweets, function(err, tweets) {
 			this.tweets = tweets;
-
-			draw_world_tweets(tweets);			/* ~MAP~ */
-			set_chart_timeline();						/* ~TIMELINE~ */
+			draw_world_tweets(tweets);		/* ~MAP~ */
+			set_chart_timeline();					/* ~TIMELINE~ */
 	});
 }
 function set_chart_timeline() {
@@ -130,7 +156,7 @@ function set_chart_timeline() {
 			.attr('class', 'bar timeline-day')
 			.attr('x', function(d) { return x_timeline(d.day); })
 			.attr('y', function(d) { return y_timeline(d.count); })
-			.attr('width', width_timeline / (days.length + 40))
+			.attr('width', width_timeline / (days.length + 20))
 			.attr('height', function(d) { return (height_timeline) - y_timeline(d.count); });
 
 		// add axes
@@ -179,38 +205,9 @@ function set_chart_timeline() {
 			.call(brush_timeline);
 	});
 }
-function set_bar() {
-	var top_counties = get_top_x_by_y(this.counties, 'FIPS');
-  // set domains
-  x_county_bar.domain([0, d3.max(users, function(d) { return d.value; })]);
-  y_county_bar.domain(users.map(function(d) { return d.key; }));
-
-  var user_bars = context_user.selectAll('.bar')
-    .data(users)
-	  	.enter().append('rect')
-    .attr("class", "bar")
-    .attr("x", function(d) { return x_county_bar(0); })
-    .attr("width", function(d) { return  x_county_bar(d.value); })
-    .attr("y", function(d) { return y_county_bar(d.key); })
-    .attr("height", y_county_bar.bandwidth());
-
-	/* interactivity
-	user_bars.on('mouseover', function(d) { map_user_tweets(d, brush_start, brush_stop); })
-				.on('mouseout', function() { map_tweets_extent(brush_start, brush_stop)});*/
-
-	context_bar.append('g')
-    .attr("class", "axis axis--x")
-		.attr('id', 'bar-x')
-    .attr("transform", "translate(0," + 0 + ")")
-    .call(x_axis_county_bar);
-  context_bar.append('g')
-    .attr('class', 'axis axis--y')
-		.attr('id', 'bar-y')
-    .call(y_axis_county_bar);
-}
 function set_county() {
-	d3.json('data/external/maps/attributes.json', function(map_file) {
-
+	d3.json('data/external/maps/test.json', function(map_file) {
+		this.counties = map_file.features.map(format_county);
 		// Filter out the counties without tweets, and AK/HI
 		map_file.features = map_file.features.filter(function(d) {
 			return (d.properties.Tweets) &&
@@ -219,116 +216,77 @@ function set_county() {
 							(d.properties.FIPS !== 15009) &&
 							(d.properties.FIPS !== 15003);
 		});
-		this.counties = map_file;
 
-		// Scales
-		color_county.domain(d3.map(map_file.features, function(d) { return d.properties['Tweets']; }));
-
-
-		// SCATTER
-		x_scatter.domain([0, d3.max(map_file.features, function(d) { return d.properties['Population']; })]);
-		y_scatter.domain([0, d3.max(map_file.features, function(d) { return d.properties['Tweets']; })]);
-
-		context_scatter.append('g')		// scatter axes
-	    .attr("class", "axis axis--x")
-			.attr('id', 'scatter-x')
-	    .attr("transform", "translate(0," + height_scatter + ")")
-	   	.call(x_axis_scatter);
-	  context_scatter.append('g')
-	    .attr('class', 'axis axis--y')
-			.attr('id', 'scatter-y')
-	    .call(y_axis_scatter);
-		draw_scatter(map_file.features, 'Population', 'Tweets');	// draw the scatter points
-
-
-		// BAR
-		var top_counties = get_top_x_by_y(map_file.features, 'Tweets', 10);
-	  // set domains
-	  x_county_bar.domain([0, d3.max(top_counties, function(d) { return d.properties.Population; })]);
-	  y_county_bar.domain(top_counties.map(function(d) { return d.properties.FIPS; }));
-
-
-
-
-
-
-
-		// MAP
+		// SCALES
+		color_county.domain(map_file.features.map(function(d) { return d.properties['Tweets']; }));
 		projection_county.fitSize([width_county_map, height_county_map], map_file);
 		path_county.projection(projection_county);
 
+
+		draw_scatter(map_file.features, 'Tweets', 'Population');	// SCATTER
+		var top_counties = get_top_x_by_y(map_file.features, 'Tweets', 15);
+		draw_bars(top_counties, 'Tweets', 'County_Nam');			// BAR
+
+		// highlight the top scatter points
+		var top_fips = top_counties.map(function(d) { return d.properties.FIPS; });
+		context_scatter.selectAll('.county-pt')
+			.filter(function(d) { return top_fips.indexOf(d.properties.FIPS) >= 0; })
+			.style('fill', function(d) { return color_county(d.properties.Tweets); });
+
+		// MAP
 		var county_blocks = context_county.selectAll('path')
 				.data(map_file.features)
       		.enter().append('path')
-				.attr('class', function(d) { return 'county-pt FIPS-' + d.properties.FIPS; })
+				.attr('class', function(d) { return 'county FIPS-' + d.properties.FIPS; })
 	      .attr('d', path_county)
 	      .style('fill', function(d) { return color_county(d.properties.Tweets); })
-	      .style('stroke', '#222')
-				.on('mouseover', highlight_county)
+				.on('mouseover', function(d) { highlight_county(d, 'Population')})
+				.on('mousemove', move_county)
 				.on('mouseout', unhighlight_county);
-
-
-
 
 		// set the dropdown to change the scatter
 		d3.select('#county-attributes').on('change', function() {
 			var sel = document.getElementById("county-attributes").value;
+			// update new color scale
+			color_county.domain(map_file.features.map(function(d) { return d.properties[sel]; }));
+			// update scatter
+			draw_scatter(map_file.features, sel, 'Tweets');
+			// update bar
+			var top_counties = get_top_x_by_y(map_file.features, sel, 15);
+			draw_bars(top_counties, sel, 'County_Nam');
+			// highlight scatter
+			var top_fips = top_counties.map(function(d) { return d.properties.FIPS; });
+			context_scatter.selectAll('.county-pt')
+				.filter(function(d) { return top_fips.indexOf(d.properties.FIPS) >= 0; })
+				.style('fill', function(d) { return color_county(d.properties[sel]); });
+			// Update map
 
-			draw_scatter(tweeted_counties, sel, 'Tweets');
-
-
+			context_county.selectAll('.county')
+				.on('mouseover', function(d) { highlight_county(d, sel)})
+				.transition(100)
+				.style('fill', function(d) { return color_county(d.properties[sel]); });
 		});
 	}); // counties*/
+
 }
+function set_votes() {
+	color_politics.domain(counties.map(function(d) { return d.properties.Polarization; }));
 
-
+	var county_blocks = context_votes.selectAll('path')
+			.data(counties)
+				.enter().append('path')
+			.attr('class', function(d) { return 'county FIPS-' + d.properties.FIPS; })
+			.attr('d', path_county)
+			.style('fill', function(d) { return color_politics(d.properties.Polarization); });
+}
 
 // helpers
-function get_top_users(messages) {
-	// get the user count
-	var counts = d3.nest()
-		.key(function(d) { return d.username; })
-		.rollup(function(leaves) { return leaves.length; })
-		.entries(messages)
-		.sort(function(a, b) { return d3.descending(a.value, b.value); }) // sort
-		.slice(0, 10);
-	return counts;
-}
 function get_top_x_by_y(x, y, n) {
-	// get the user count
-	var counts = x.sort(function(a, b) { return d3.descending(a.properties[y], b.properties[y]); }) // sort
-		.slice(0, n);
-	return counts;
+	var filtered = x.filter(function(d) { return d.properties[y]; }),
+			counts = filtered.sort(function(a, b) { return d3.descending(a.properties[y], b.properties[y]); }),
+			sliced = counts.slice(0, n);
+	return sliced;
 }
-function get_top_user_messages(username, messages) {
-	return messages
-		.filter(function(d) { return d.username === username; })
-		.slice(0, 10);
-}
-function tabulate(data, columns) {
-    var table = d3.select("#chart-table");
-
-    // create a row for each object in the data
-    var rows = table.selectAll("tr")
-        .data(data)
-        .enter()
-        .append("tr");
-
-    // create a cell in each row for each column
-    var cells = rows.selectAll("td")
-        .data(function(row) {
-            return columns.map(function(column) {
-                return {column: column, value: row[column]};
-            });
-        })
-        .enter()
-        .append("td")
-        .attr("style", "font-family: Courier")
-            .html(function(d) { return d.value; });
-    //return table;
-}
-
-
 function filter_message_range(data, start=false, stop=false) {
 	if (start !== false) {
 		return data.filter(function(d) { return (d.date > start) && (d.date < end); })
@@ -338,23 +296,61 @@ function filter_message_range(data, start=false, stop=false) {
 	};
 }
 
+function highlight_county(county, attr) {
+	var props = county.properties,
+	    fips = '.FIPS-' + props.FIPS,
+			num_tweets = props.Tweets;
+			value = props[attr],
+			fill_color = color_county(value);
 
-function highlight_county(county) {
-	var fips = '.FIPS-' + county.properties.FIPS;
-	var mapped = svg_county.select(fips).transition(100).style('fill', '#000'),
-			scattered = svg_scatter.select(fips).transition(100)
-				.attr('r', 6)
-				.style('opacity', 1)
-				.style('fill', '#000');
-	console.log(fips);
+	tooltip_county.html("");
+	tooltip_county.style('visibility', 'visible')
+		.style('border', '5px solid' + fill_color)
+		.style('opacity', 1);
+
+	tooltip_county.append("h3").text(props.County_Nam +', '+ props.Abbreviati);
+	tooltip_county.append('div').text(attr +': ' + props[attr]);
+	tooltip_county.append('div').text('Tweets: ' + num_tweets);
+
+	svg_county.selectAll('path.county')	// dim other counties
+		.style('opacity', 0.3)
+		.style('stroke', null);
+
+	svg_county.select(fips)						// highlight this county on map
+		.style('opacity', 1)
+		.style('stroke', '#222')
+		.raise();
+	svg_scatter.select(fips)
+		.attr('r', 10)
+		.style('fill', fill_color)
+		.style('opacity', 1)
+		.style('stroke', '#fff')
+		.style('stroke-width', 1)
+		.raise();
+
+	svg_bar.select(fips)
+		.attr('stroke', '#222')
+		.attr('stroke-width', 1.5);
 }
 function unhighlight_county(county) {
+	tooltip_county.style('visibility', 'hidden');
+	svg_county.selectAll('path.county').style('opacity', 1);
+	//select states too
+
 	var fips = '.FIPS-' + county.properties.FIPS;
-	var mapped = svg_county.select(fips).transition(50)
-				.style('fill', function(d) { return color_county(d.properties.Tweets); }),
-			scattered = svg_scatter.select(fips).transition(50)
-				.attr('r', 3)
-				//.style('z-index', 5)
-				.style('opacity', 0.4)
-				.style('fill', '#000');
+	svg_county.select(fips).transition(50)
+		.style('opacity', 0.7)
+		.style('stroke', '#fff');
+	svg_scatter.select(fips).transition(50)
+		.attr('r', 3.5)
+		.style('opacity', 0.7)
+		.style('fill', '#ccc')
+		.style('stroke', null)
+		.style('stroke-width', null);
+	svg_bar.select(fips).transition(50)
+		.style('stroke', null)
+		.style('stroke-width', null);
+}
+function move_county() {
+	return tooltip_county.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
 }

@@ -47,36 +47,57 @@
 							<h5>Data and Methodology</h5>
 						</div>
 					</div>
-
 					<hr>
-
-					<div class="row">
-						<div class="col-xs-9 bottom-column">
-							<h3>U.S. Counties</h3>
-							<p>This is dummy text, etc etc etc</p>
+					<div class="row" id='world-map-row'>
+						<div class="col-xs-12">
+							<h3>World Tweets Map</h3> <input autofocus maxlength=5 placeholder="type a hashtag">
 						</div>
-						<div class="col-xs-3 bottom-column pull-right">
-							<span><b>X Attribute: </b><select id="county-attributes">
-									<option value="Population" selected="selected">Population</option>
-									<option value="Total_Vote">Total Votes</option>
-									<option value="Pct_Dem">Percentage Democratic Vote</option>
-									<option value="Pct_Gop">Percentage Republican Vote</option>
-									<option value="Unemployme">Unemployment Rate</option>
-							</select></span>
-						</div>
-						<div class="col-xs-6" id="chart-county-bar"></div>
-						<div class="col-xs-6" id="chart-scatter"></div>
+						<div class="col-xs-12" id="chart-world"></div>
+					</div>
+					<div class="row" id='timeline-row'>
+						<div class="col-xs-12" id="chart-timeline"></div>
 					</div>
 
 					<hr>
 
 					<div class="row">
 						<div class="col-xs-12">
+						<div class="row">
+							<div class="col-xs-9 bottom-column">
+								<h3>U.S. Counties</h3>
+								<p>This is dummy text, etc etc etc</p>
+							</div>
+							<div class="col-xs-3 bottom-column pull-right">
+								<span><b>X Attribute: </b><select id="county-attributes">
+										<option value="Tweets" selected="selected">Tweets</option>
+										<option value="Population">Population</option>
+										<option value="Total_Vote">Total Votes</option>
+										<option value="Percent_De">Percentage Democratic Vote</option>
+										<option value="Percent_Go">Percentage Republican Vote</option>
+										<option value="Unemployme">Unemployment Rate</option>
+								</select></span>
+							</div>
+						</div>
+						<div class="col-xs-6" id="chart-county-bar"></div>
+						<div class="col-xs-6" id="chart-scatter"></div>
+
+						<div class="col-xs-12">
 							<h3>County Attributes</h3>
 							<p>This is dummy text, etc etc etc</p>
 						</div>
 						<div class="col-xs-12" id="chart-county-map"></div>
 					</div>
+					</div>
+
+					<hr>
+
+					<div class="row">
+						<div class="col-xs-12">
+							<h3>U.S. Voting Results</h3>
+						</div>
+						<div class="col-xs-12" id="chart-votes"></div>
+					</div>
+
 
           <div class="row">
           	<div class="col-xs-12">
@@ -84,25 +105,20 @@
 							<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 						</div>
           </div>
-          </div>
+				</div><!-- end panel body -->
 
           <div class="panel-footer">
-						<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
+							<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
 					</div>
 
         </div>
-    </div>
+			</div>
 </div>
+
 
 <script src="src/main.js"></script><!-- read in the variables -->
 <script src="src/functions.js"></script><!-- Now get functions (depend on vars) -->
 <script>
-
-/* ~Users~ */
-//this.top_users = get_top_users(tweets);		// bar chart
-//set_chart_users(top_users);
-//this.top_user_messages = get_top_user_messages(top_users[0].key, tweets);
-//set_table_users(top_user_messages) // table
 
 function initialize() {
 	//set_world();
