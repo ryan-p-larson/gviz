@@ -1,0 +1,57 @@
+#chart-world {
+  min-height: 400px;
+}
+.bar {
+  fill: steelblue;
+}
+/*#chart-user > .axis--y .domain {
+  display: none;
+}*/
+
+input {
+  background: transparent;
+  border: none;
+  margin: 10px 384px;
+  width: 180px;
+  font-size: 18px;
+  padding: 6px;
+  text-align: center;
+}
+
+
+/* CHART MARKS */
+.county {
+  stroke: #fff;
+  stroke-width: 1px;
+}
+.county-pt {
+  opacity: 0.4;
+  stroke: #fff;
+}
+
+
+/* Table */
+body { font-family: 'Helvetica Neue', Helvetica; font-weight: 300; padding: 20px;}
+th { text-align: left; }
+th, td { padding: 0 1em 0.5ex 0;}
+th.center, td.center { text-align: center; }
+th.num, td.num { text-align: right; }
+
+.table-fixed {
+  width: 100%;
+  background-color: #f3f3f3;
+  tbody{
+    overflow-y:auto;
+    width: 100%;
+    }
+  thead,tbody,tr,td,th{
+    display:block;
+  }
+}
+
+/* to pull the attribute picker down */
+.bottom-column {
+    float: none;
+    display: table-cell;
+    vertical-align: bottom;
+}
