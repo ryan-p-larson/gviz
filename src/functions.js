@@ -266,11 +266,17 @@ function set_county() {
 				.transition(100)
 				.style('fill', function(d) { return color_county(d.properties[sel]); });
 		});
+	set_votes();
 	}); // counties*/
-
 }
 function set_votes() {
-	color_politics.domain(counties.map(function(d) { return d.properties.Polarization; }));
+	color_politics.domain([
+			d3.min(counties, function(d) { return d.properties.Polarization; }),
+			-.2,
+			0,
+			.2,
+			d3.max(counties, function(d) { return d.properties.Polarization; })
+		]);
 
 	var county_blocks = context_votes.selectAll('path')
 			.data(counties)

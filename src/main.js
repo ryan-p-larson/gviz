@@ -28,7 +28,7 @@ var x_timeline = d3.scaleTime().rangeRound([0, width_timeline]),
 		y_county_bar = d3.scaleBand().range([0, height_county_bar]).padding(0.4),
     x_scatter = d3.scaleLinear().range([0, width_scatter]),
     y_scatter = d3.scaleLinear().range([height_scatter, 0]),
-    color_politics = d3.scaleQuantile()
+    color_politics = d3.scaleLinear()
       .range(['#b2182b','#ef8a62','#fddbc7','#f7f7f7','#d1e5f0','#67a9cf','#2166ac']),
     color_county = d3.scaleQuantile().range(['#f1eef6','#bdc9e1','#74a9cf','#2b8cbe','#045a8d']);
 
