@@ -7,6 +7,10 @@
 /*#chart-user > .axis--y .domain {
   display: none;
 }*/
+#chart-world-map-svg, #chart-county-map-svg {
+  display: block;
+  margin: auto;
+}
 
 input {
   background: transparent;

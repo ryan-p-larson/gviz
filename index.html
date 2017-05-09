@@ -40,46 +40,12 @@
 
           <div class="panel-body">
 
-						<div class="row">
-							<div class="col-xs-12">
-								<h3>Introduction</h3>
-								<p>This is dummy text, etc etc etc</p>
-								<h5>Data and Methodology</h5>
-							</div>
+					<div class="row">
+						<div class="col-xs-12" id='width-setter'>
+							<h3>Introduction</h3>
+							<p>This is dummy text, etc etc etc</p>
+							<h5>Data and Methodology</h5>
 						</div>
-
-          	<div class="row" id='world-map-row'>
-							<div class="col-xs-12">
-								<h3>World Tweets Map</h3> <input autofocus maxlength=5 placeholder="type a hashtag">
-							</div>
-            	<div class="col-xs-12" id="chart-world"></div>
-            </div>
-            <div class="row" id='timeline-row'>
-            	<div class="col-xs-12" id="chart-timeline"></div>
-            </div>
-
-						<hr>
-
-						<div class="row">
-							<div class="col-xs-12">
-								<h3>User Tweets</h3>
-								<p>This is dummy text, etc etc etc</p>
-							</div>
-							<div class="col-xs-6" id="chart-users"></div>
-							<div class="col-xs-6" id="chart-table"><div>
-								<table class="table table-hover table-fixed">
-							    <thead>
-							      <tr>
-							        <th>Message</th>
-							        <th>Retweet</th>
-							        <th>Date</th>
-							      </tr>
-							    </thead>
-							    <tbody id='chart-table-messages'>
-									</tbody>
-								</table>
-							</div>
-            </div>
 					</div>
 
 					<hr>
@@ -98,17 +64,26 @@
 									<option value="Unemployme">Unemployment Rate</option>
 							</select></span>
 						</div>
-
-						<div class="col-xs-9" id="chart-county"></div>
-						<div class="col-xs-3" id="chart-scatter"></div>
+						<div class="col-xs-6" id="chart-county-bar"></div>
+						<div class="col-xs-6" id="chart-scatter"></div>
 					</div>
 
-            <div class="row">
-            	<div class="col-xs-12">
-								<h3>Notes</h3>
-								<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-							</div>
-            </div>
+					<hr>
+
+					<div class="row">
+						<div class="col-xs-12">
+							<h3>County Attributes</h3>
+							<p>This is dummy text, etc etc etc</p>
+						</div>
+						<div class="col-xs-12" id="chart-county-map"></div>
+					</div>
+
+          <div class="row">
+          	<div class="col-xs-12">
+							<h3>Notes</h3>
+							<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+						</div>
+          </div>
           </div>
 
           <div class="panel-footer">
@@ -130,7 +105,7 @@
 //set_table_users(top_user_messages) // table
 
 function initialize() {
-	set_world();
+	//set_world();
 	set_county();
 }
 
