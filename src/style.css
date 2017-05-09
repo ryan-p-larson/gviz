@@ -1,3 +1,8 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, sans-serif;;
+  font-size: 12px;
+}
+
 #chart-world {
   min-height: 400px;
 }
@@ -20,14 +25,25 @@ input {
 
 
 /* CHART MARKS */
-.county {
+.states {
+    stroke: #fff;
+    fill: none;
+    pointer-events: none;
+  }
+.counties {
   stroke: #fff;
-  stroke-width: 1px;
+  fill: green;
+  stroke-width: .3px;
 }
-.county-pt {
-  opacity: 0.4;
-  stroke: #fff;
-}
+.tooltip {
+    background: rgba(0, 0, 0, 0.85);
+    color: #f9f9f9;
+    padding: 8px;
+  }
+  .tooltip h3 {
+    margin: 0px 0px 8px;
+  }
+
 
 
 /* Table */

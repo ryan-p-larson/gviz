@@ -115,7 +115,7 @@ function set_world() {
 			set_users();		// bar chart
 
 			var top_user_messages = get_top_user_messages(this.top_10[0].key, tweets);
-			tabulate(top_user_messages, ['message', 'retweet', 'date']);	// table
+			get_table(top_user_messages, ['message', 'retweet', 'date']);	// table
 
 			/* ~MAP~ */
 			draw_world_tweets(tweets);
@@ -246,11 +246,13 @@ function set_county() {
 		var county_blocks = context_county.selectAll('path')
 				.data(map_file.features)
       		.enter().append('path')
-				.attr('class', function(d) { return 'county-pt FIPS-' + d.properties.FIPS; })
+				.attr('class', function(d) { return 'county FIPS-' + d.properties.FIPS; })
 	      .attr('d', path_county)
 	      .style('fill', function(d) { return color_county(d.properties.Tweets); })
 	      .style('stroke', '#222')
-				.on('mouseover', highlight_county)
+				//.on('mouseover', highlight_county)
+				.on('mouseover', function(d) { highlight_county(d, 'Tweets')})
+				.on('mousemove', move_county)
 				.on('mouseout', unhighlight_county);
 
 		// set the dropdown to change the scatter
@@ -279,7 +281,7 @@ function get_top_user_messages(username, messages) {
 		.filter(function(d) { return d.username === username; })
 		.slice(0, 10);
 }
-function tabulate(data, columns) {
+function get_table(data, columns) {
     var table = d3.select("#chart-table");
 
     // create a row for each object in the data
@@ -313,17 +315,39 @@ function filter_message_range(data, start=false, stop=false) {
 }
 
 
-function highlight_county(county) {
-	var fips = '.FIPS-' + county.properties.FIPS;
-	var mapped = svg_county.select(fips).transition(100).style('fill', '#000'),
-			scattered = svg_scatter.select(fips).transition(100)
-				.attr('r', 6)
-				//.style('z-index', 5000)
-				.style('opacity', 1)
-				.style('fill', '#000');
+function highlight_county(county, attr) {
+	var fips = '.FIPS-' + county.properties.FIPS,
+			num_tweets = county.properties.Tweets;
+			//value = county.properties[attr],
+			fill_color = color_county(num_tweets);
+
+	tooltip_county.html("");
+	tooltip_county.style('visibility', 'visibile')
+		.style('border', '2px solid' + fill_color);
+
+	//tooltip_county.append("h3").text(county.properties.Name);
+	tooltip_county.append('div').text('Population: ' + county.properties.Population);
+	tooltip_county.append('div').text('Tweets: ' + num_tweets);
+
+	svg_county.selectAll('.county path')
+		.style('opacity', 0.3)
+		.style('stroke', null);
+
+	svg_county.select(fips)
+		.style('opacity', 1)
+		.style('stroke', '#222')
+		.raise();
+	svg_scatter.select(fips)
+		.attr('r', 10)
+		.style('opacity', 1)
+		.style('stroke', '#222');
 
 }
 function unhighlight_county(county) {
+	tooltip_county.style('visibility', 'hidden');
+	svg_county.selectAll('.county path').style('opacity', 1);
+	//select states too
+
 	var fips = '.FIPS-' + county.properties.FIPS;
 	var mapped = svg_county.select(fips).transition(50)
 				.style('fill', function(d) { return color_county(d.properties.Tweets); }),
@@ -332,4 +356,7 @@ function unhighlight_county(county) {
 				//.style('z-index', 5)
 				.style('opacity', 0.4)
 				.style('fill', '#000');
+}
+function move_county() {
+	return tooltip_county.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
 }

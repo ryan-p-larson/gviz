@@ -10,14 +10,16 @@ var col_xs_width = d3.select('#chart-world').node().getBoundingClientRect().widt
     width_timeline = width_world_map - margin_timeline.left - margin_timeline.right,
     width_user = (col_xs_width / 2) - margin_user.left - margin_user.right,
     width_county_map = (col_xs_width * .75) - margin_map.left - margin_map.right,
-    width_scatter = (col_xs_width / 3) - margin_scatter.left - margin_scatter.right;
+    width_scatter = (col_xs_width / 3) - margin_scatter.left - margin_scatter.right,
+    width_vote_map = width_world_map;
 
 // heights
 var height_world_map = (width_world_map / 2.5) - margin_map.top - margin_map.bottom,
     height_timeline = (height_world_map / 3) - margin_timeline.top - margin_timeline.bottom,
     height_user = (width_user / 2) - margin_user.top - margin_user.bottom,
     height_county_map = height_world_map,
-    height_scatter = height_county_map;
+    height_scatter = height_county_map,
+    height_vote_map = height_world_map;
 
 // Scales
 var x_timeline = d3.scaleTime().rangeRound([0, width_timeline]),
@@ -100,3 +102,11 @@ var context_timeline = svg_timeline.append("g").attr("class", "context"),
     context_user = svg_user.append('g'),
     context_county = svg_county.append('g'),
     context_scatter = svg_scatter.append('g');
+
+// Interactivity
+var tooltip_county = svg_county
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden");
