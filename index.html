@@ -6,22 +6,24 @@
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.css" />
 
-  <!-- Bootstrap and jQuery -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+  	<!-- Bootstrap and jQuery -->
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 	<!-- D3.js + TopoJson -->
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
 	<script src="https://d3js.org/topojson.v2.min.js"></script>
-	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+
 	<!-- D3 legend to make it easier -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.21.0/d3-legend.min.js"></script>
 	<!-- Simple statistics for Jenks natural breaks -->
 	<script src="https://unpkg.com/simple-statistics@2.3.0/dist/simple-statistics.min.js"></script>
+	<!-- annotations -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.js"></script>
 
 	<!-- Styling -->
 	<link href="src/style.css" rel="stylesheet">
@@ -63,29 +65,25 @@
 					<div class="row">
 						<div class="col-xs-12">
 						<div class="row">
-							<div class="col-xs-9 bottom-column">
+							<div class="col-xs-6 bottom-column">
 								<h3>U.S. Counties</h3>
 								<p>This is dummy text, etc etc etc</p>
 							</div>
+							<div class="col-xs-3" id='county-legend'></div>
 							<div class="col-xs-3 bottom-column pull-right">
-								<span><b>X Attribute: </b><select id="county-attributes">
-										<option value="Tweets" selected="selected">Tweets</option>
-										<option value="Population">Population</option>
-										<option value="Total_Vote">Total Votes</option>
-										<option value="Percent_De">Percentage Democratic Vote</option>
-										<option value="Percent_Go">Percentage Republican Vote</option>
-										<option value="Unemployme">Unemployment Rate</option>
+								<span><b>County Attribute: </b><select id="county-attributes">
 								</select></span>
 							</div>
+							<div class="col-xs-12" id="chart-county-map"></div>
 						</div>
-						<div class="col-xs-6" id="chart-county-bar"></div>
-						<div class="col-xs-6" id="chart-scatter"></div>
+
 
 						<div class="col-xs-12">
 							<h3>County Attributes</h3>
 							<p>This is dummy text, etc etc etc</p>
 						</div>
-						<div class="col-xs-12" id="chart-county-map"></div>
+						<div class="col-xs-6" id="chart-county-bar"></div>
+						<div class="col-xs-6" id="chart-scatter"></div>
 					</div>
 					</div>
 
@@ -101,15 +99,15 @@
 
           <div class="row">
           	<div class="col-xs-12">
-							<h3>Notes</h3>
-							<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
-						</div>
+				<h3>Notes</h3>
+				<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+			</div>
           </div>
 				</div><!-- end panel body -->
 
-          <div class="panel-footer">
-							<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
-					</div>
+	      <div class="panel-footer">
+						<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
+				</div>
 
         </div>
 			</div>

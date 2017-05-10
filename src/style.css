@@ -2,19 +2,23 @@
   min-height: 400px;
 }
 
-#chart-county-bar > .axis--y .domain {
+
+#bar-y >  .domain {
   display: none;
 }
+
 #chart-vote-map-svg, #chart-county-map-svg {
   display: block;
   margin: auto;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 input {
   background: transparent;
   border: none;
   margin: 10px 384px;
-  width: 180px;
+  width: 250px;
   font-size: 18px;
   padding: 6px;
   text-align: center;
@@ -26,16 +30,33 @@ input {
   }
 
 /* CHART MARKS */
-.county {
-  stroke: #fff;
+.county, .state {
   stroke-width: 0.3px;
   opacity: 0.7;
+}
+.state {
+	stroke: #777;
+}
+.county {
+	stroke: #fff;
 }
 .county-pt {
   opacity: 0.7;
 }
 
-
+/* Titles and formatting */
+#scatter-title, #bar-title {
+  font-weight: bold;
+  font-size: 12px;
+}
+ #vote-title {
+   font-weight: bold;
+   font-size: 14px;
+ }
+ text.legendTitle {
+   font-weight: bold;
+   font-size: 12px;
+ }
 
 
 /* to pull the attribute picker down */

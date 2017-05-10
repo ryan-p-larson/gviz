@@ -49,19 +49,6 @@ function draw_bars(data, x, y) {
 	x_county_bar.domain([0, d3.max(data, function(d) { return d.properties[x]; })]);
 	y_county_bar.domain(data.map(function(d) { return d.properties[y]; }));
 
-	// change axes
-	context_bar.select('#bar-x').transition(100).style('opacity', 0).remove();
-	context_bar.select('#bar-y').transition(100).style('opacity', 0).remove();
-	context_bar.append('g')		// scatter axes
-		.attr("class", "axis axis--x")
-		.attr('id', 'bar-x')
-		.attr("transform", "translate(0," + 0 + ")")
-		.call(x_axis_county_bar);
-	context_bar.append('g')
-		.attr('class', 'axis axis--y')
-		.attr('id', 'bar-y')
-		.call(y_axis_county_bar);
-
 	var county_bars = svg_bar.selectAll('.bar')
 			.data(data, function(d) { return d.County_Nam; });
 
@@ -85,24 +72,75 @@ function draw_bars(data, x, y) {
 	county_bars.transition().duration(100)
 			.attr("width", function(d) { return  x_county_bar(d.properties[x]); })
 			.attr("y", function(d) { return y_county_bar(d.properties[y]); });
+	// Title
+	context_bar.select('#bar-title').transition(t).style('opacity', 0).remove();
+	context_bar.append('text')
+		.attr('x', -margin_county_bar.left + 20)
+		.attr('dy', -25)
+		.attr('id', 'bar-title')
+		.style('text-anchor', 'start')
+		.text('Top Counties by ' + attrs[x]['human']);
+
+
+	// change axes
+	context_bar.select('#bar-x').transition(100).style('opacity', 0).remove();
+	context_bar.select('#bar-y').transition(100).style('opacity', 0).remove();
+	context_bar.append('g')		// scatter axes
+		.attr("class", "axis axis--x")
+		.attr('id', 'bar-x')
+		.attr("transform", "translate(0," + 0 + ")")
+		.call(x_axis_county_bar.tickFormat(attrs[x]['form']))
+			.select(".tick:last-of-type text")
+			.select(function() { return this.parentNode.appendChild(this.cloneNode()); })
+			.attr("y", -20)
+			.attr("dy", null)
+			.attr("font-weight", "bold")
+			.text(attrs[x]['human']);
+	context_bar.append('g')
+		.attr('class', 'axis axis--y')
+		.attr('id', 'bar-y')
+		.call(y_axis_county_bar);
+
+
 }
 function draw_scatter(data, x, y) {
 	var t = d3.transition().duration(100);
 	x_scatter.domain([0, d3.max(data, function(d) { return d.properties[x]; })]);
 	y_scatter.domain([0, d3.max(data, function(d) { return d.properties[y]; })]);
 
+	// Title
+	context_scatter.select('#scatter-title').transition(t).style('opacity', 0).remove();
+	context_scatter.append('text')
+		.attr('x', width_scatter)
+		.attr('dy', -20)
+		.attr('id', 'scatter-title')
+		.style('text-anchor', 'end')
+		.text(attrs[y]['human'] + ' and ' + attrs[x]['human'] + ' Relationship');
+
 	// change axes
-	context_scatter.select('#scatter-x').transition(100).style('opacity', 0).remove();
-	context_scatter.select('#scatter-y').transition(100).style('opacity', 0).remove();
+	context_scatter.select('#scatter-x').transition(t).style('opacity', 0).remove();
+	context_scatter.select('#scatter-y').transition(t).style('opacity', 0).remove();
 	context_scatter.append('g')		// scatter axes
 	  .attr("class", "axis axis--x")
 	  .attr('id', 'scatter-x')
 	  .attr("transform", "translate(0," + height_scatter + ")")
-	  .call(x_axis_scatter);
+	  .call(x_axis_scatter.tickFormat(attrs[x]['form']))
+			.select(".tick:last-of-type text")
+			.select(function() { return this.parentNode.appendChild(this.cloneNode()); })
+			.attr("y", -10)
+			.attr("dy", null)
+			.attr("font-weight", "bold")
+			.text(attrs[x]['human']);
 	context_scatter.append('g')
 	  .attr('class', 'axis axis--y')
 	  .attr('id', 'scatter-y')
-	  .call(y_axis_scatter);
+	  .call(y_axis_scatter.tickFormat(attrs[y]['form']))
+			.select(".tick:last-of-type text")
+  		.select(function() { return this.parentNode.appendChild(this.cloneNode()); })
+	    .attr("x", 10)
+	    .attr("text-anchor", "start")
+	    .attr("font-weight", "bold")
+	    .text(attrs[y]['human']);
 
 	var join = context_scatter.selectAll('.county-pt')
 			.data(data.filter(function(d) {
@@ -206,22 +244,24 @@ function set_chart_timeline() {
 	});
 }
 function set_county() {
-	d3.json('data/external/maps/test.json', function(map_file) {
+	d3.json('data/external/maps/Updated_Export_TOPO.json', function(geoJ) {
+
+		var map_file = topojson.feature(geoJ, geoJ.objects['Updated_export']);
 		this.counties = map_file.features.map(format_county);
+
 		// Filter out the counties without tweets, and AK/HI
 		map_file.features = map_file.features.filter(function(d) {
 			return (d.properties.Tweets) &&
-		 					(d.properties.FIPS !== 2090) &&
-							(d.properties.FIPS !== 2020) &&
-							(d.properties.FIPS !== 15009) &&
-							(d.properties.FIPS !== 15003);
+ 					(d.properties.FIPS !== 2090) &&
+					(d.properties.FIPS !== 2020) &&
+					(d.properties.FIPS !== 15009) &&
+					(d.properties.FIPS !== 15003);
 		});
 
 		// SCALES
 		color_county.domain(map_file.features.map(function(d) { return d.properties['Tweets']; }));
 		projection_county.fitSize([width_county_map, height_county_map], map_file);
 		path_county.projection(projection_county);
-
 
 		draw_scatter(map_file.features, 'Tweets', 'Population');	// SCATTER
 		var top_counties = get_top_x_by_y(map_file.features, 'Tweets', 15);
@@ -244,13 +284,41 @@ function set_county() {
 				.on('mousemove', move_county)
 				.on('mouseout', unhighlight_county);
 
+		// legend
+		context_county.append('g')
+			.attr("class", "legendQuant")
+			.attr("transform", "translate(20," + (height_county_map * .66) + ")");
+		var legend = d3.legendColor()
+			  .labelFormat(d3.format("d"))
+			  .title(attrs['Tweets']['human'])
+			  .titleWidth(100)
+				.shapeWidth(25)
+				.shapeHeight(15)
+				.shapePadding(5)
+			  .scale(color_county);
+		context_county.select(".legendQuant")
+		  .call(legend);
+
+
+		var drop = d3.select('#county-attributes');
+		drop.selectAll('option')
+				.data(drop_keys)
+        .enter().append("option")
+        .attr("value", function (d) { return d; })
+        .text(function (d) { return attrs[d]['human']; });
+
 		// set the dropdown to change the scatter
 		d3.select('#county-attributes').on('change', function() {
-			var sel = document.getElementById("county-attributes").value;
-			// update new color scale
-			color_county.domain(map_file.features.map(function(d) { return d.properties[sel]; }));
-			// update scatter
-			draw_scatter(map_file.features, sel, 'Tweets');
+			var sel = document.getElementById("county-attributes").value,
+					sel_mapped = map_file.features.map(function(d) { return d.properties[sel]; });
+
+			color_county.domain(sel_mapped);			// update new color scale
+			context_county.select(".legendQuant")
+				.call(legend.labelFormat(attrs[sel]['form']));
+
+
+
+			draw_scatter(map_file.features, 'Tweets', sel);// update scatter
 			// update bar
 			var top_counties = get_top_x_by_y(map_file.features, sel, 15);
 			draw_bars(top_counties, sel, 'County_Nam');
@@ -270,20 +338,78 @@ function set_county() {
 	}); // counties*/
 }
 function set_votes() {
-	color_politics.domain([
-			d3.min(counties, function(d) { return d.properties.Polarization; }),
-			-.2,
-			0,
-			.2,
-			d3.max(counties, function(d) { return d.properties.Polarization; })
-		]);
 
-	var county_blocks = context_votes.selectAll('path')
-			.data(counties)
+	d3.json('data/external/maps/state-counts.geojson', function(geoJ) {
+		geoJ.features.map(format_state);
+		this.states = geoJ;
+
+		// Title
+		context_votes.append('text')
+			.attr('x', width_vote_map/2)
+			.attr('dy', -2)
+			.attr('id', 'vote-title')
+			.style('text-anchor', 'middle')
+			.text('2016 State Voting Results, Scaled by # Tweets');
+
+		// SCALES
+		var tweet_rates = geoJ.features.map(function(d) { return d.properties.Tweets; }),
+				tweet_breaks = ss.equalIntervalBreaks(tweet_rates, 5);
+		scale_tweets.domain(tweet_breaks);
+
+		color_dem.domain(geoJ.features.map(function(d) {return d.properties.Votes_Demo; }));
+		color_gop.domain(geoJ.features.map(function(d) {return d.properties.Votes_Gop; }));
+
+		// MAP POLYGONS
+		var state_polys = context_votes.selectAll('path')
+			.data(geoJ.features)
 				.enter().append('path')
-			.attr('class', function(d) { return 'county FIPS-' + d.properties.FIPS; })
+			.attr('class', function(d) { return 'state st-' + d.properties.Abbreviati; })
+			.attr("transform", function(d) {
+		        var centroid = path_county.centroid(d),
+		            x = centroid[0],
+		            y = centroid[1];
+		        return "translate(" + x + "," + y + ")"
+		            + "scale(" + scale_tweets(d.properties.Tweets) + ")"
+		            + "translate(" + -x + "," + -y + ")";
+		      })
 			.attr('d', path_county)
-			.style('fill', function(d) { return color_politics(d.properties.Polarization); });
+			.style('fill', function(d) { return get_st_color(d); })
+			.on('mouseover', function(d) { highlight_state(d); })
+			.on('mousemove', move_state)
+			.on('mouseout', unhighlight_state);
+
+		// legend
+		context_votes.append('g')
+			.attr("class", "legendQuant")
+			.attr('id', 'vote-dem')
+			.attr("transform", "translate(20," + (height_vote_map * .7) + ")");
+		context_votes.append('g')
+			.attr("class", "legendQuant")
+			.attr('id', 'vote-gop')
+			.attr("transform", "translate(20," + (height_vote_map * .95) + ")");
+		var dem_legend = d3.legendColor()
+				.labelFormat(attrs['Votes_Demo']['form'])
+				.title(attrs['Votes_Demo']['human'])
+				.titleWidth(200)
+				.shapeWidth(20)
+				.shapeHeight(15)
+				.shapePadding(25)
+				.orient('horizontal')
+				.scale(color_dem);
+		var gop_legend = d3.legendColor()
+				.labelFormat(attrs['Votes_Gop']['form'])
+				.title(attrs['Votes_Gop']['human'])
+				.titleWidth(200)
+				.shapeWidth(20)
+				.shapeHeight(15)
+				.shapePadding(25)
+				.orient('horizontal')
+				.scale(color_gop);
+		context_votes.select("#vote-dem").call(dem_legend);
+		context_votes.select("#vote-gop").call(gop_legend);
+
+	});
+
 }
 
 // helpers
@@ -344,19 +470,83 @@ function unhighlight_county(county) {
 	//select states too
 
 	var fips = '.FIPS-' + county.properties.FIPS;
-	svg_county.select(fips).transition(50)
+	svg_county.select(fips).transition(t)
 		.style('opacity', 0.7)
 		.style('stroke', '#fff');
-	svg_scatter.select(fips).transition(50)
+	svg_scatter.select(fips).transition(t)
 		.attr('r', 3.5)
 		.style('opacity', 0.7)
 		.style('fill', '#ccc')
 		.style('stroke', null)
 		.style('stroke-width', null);
-	svg_bar.select(fips).transition(50)
+	svg_bar.select(fips).transition(t)
 		.style('stroke', null)
 		.style('stroke-width', null);
 }
 function move_county() {
 	return tooltip_county.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
 }
+
+function highlight_state(state) {
+	var props = state.properties,
+			abbrv = props.STUSPS10,
+			selector = '.st-' + abbrv,
+			num_tweets = props.Tweets,
+			num_dem = props.Votes_Demo,
+			dem_rate = props.dem_rate,
+			num_gop = props.Votes_Gop,
+			gop_rate = props.gop_rate,
+			fill_color = get_st_color(state);
+
+	tooltip_votes.html("");
+	tooltip_county.style('visibility', 'visible')
+		.style('border', '5px solid' + fill_color)
+		.style('opacity', 1);
+
+	tooltip_county.append("h3").text('2016 Election - ' + abbrv);
+	tooltip_county.append('div').text('# Tweets: ' + attrs['Tweets']['form'](num_tweets));
+	tooltip_county.append('div').text('# Democratic votes: ' + num_dem + '      |   % Votes: ' + dem_rate);
+	tooltip_county.append('div').text('# Republican votes: ' + num_gop + '      |   % Votes: ' + gop_rate);
+
+	svg_vote.selectAll('path.state')	// dim other counties
+		.style('opacity', 0.3)
+		.style('stroke', null);
+
+	svg_vote.select(selector)						// highlight this county on map
+		.style('opacity', 1)
+		.style('stroke', '#222')
+		.raise();
+}
+function move_state() {
+	return tooltip_votes.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
+}
+function unhighlight_state(state) {
+	tooltip_votes.style('visibility', 'hidden');
+	svg_vote.selectAll('path.state').style('opacity', 1);
+
+	var props = state.properties,
+			abbrv = props.STUSPS10,
+			selector = '.st-' + abbrv;
+	svg_vote.select(selector).transition(t)
+		.style('opacity', 0.7)
+		.style('stroke', '#777');
+}
+
+
+function get_st_color(st) {
+	var props = st.properties,
+		dem = props.Votes_Demo,
+		gop = props.Votes_Gop,
+		party = (gop > dem) ? color_gop(gop) : color_dem(dem);
+	return party;
+}
+
+
+
+/*var cartogram = d3.cartogram()
+	.projection(projection_county)
+	.value()*/
+
+/*
+eg = d3.set([x, y, ..., z])
+eg.has(key)*/
