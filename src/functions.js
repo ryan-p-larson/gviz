@@ -19,6 +19,7 @@ function draw_world_tweets(data, start=false, stop=false) {
 	context.globalAlpha = 0.4;
 	path_world.context(context);
 
+	context.fillStyle = "#cccccc";
 	context.beginPath();
 	path_world(this.countries);
 	context.stroke();
@@ -156,6 +157,8 @@ function draw_scatter(data, x, y) {
 		.attr("cy", function(d) { return y_scatter(d.properties[y]); })
 		.attr("r", 3.5)
 		.style('fill', '#ccc')
+		.style('stroke', '#222')
+		.style('stroke-width', 0.2)
 		.style('opacity', 0.7)
 		.on('mouseover', function(d) { highlight_county(d, y); })
 		.on('mousemove', move_county)
@@ -283,6 +286,13 @@ function set_county() {
 				.on('mouseover', function(d) { highlight_county(d, 'Population')})
 				.on('mousemove', move_county)
 				.on('mouseout', unhighlight_county);
+		// map title
+		context_county.append('text')
+			.attr('x', width_county_map/2)
+			.attr('dy', -25)
+			.attr('id', 'county-title')
+			.style('text-anchor', 'middle')
+			.text('Top Counties by ' + attrs['Tweets']['human']);
 
 		// legend
 		context_county.append('g')
@@ -316,6 +326,13 @@ function set_county() {
 			context_county.select(".legendQuant")
 				.call(legend.labelFormat(attrs[sel]['form']));
 
+			context_county.select('#county-title').transition(t).style('opacity', 0).remove();
+			context_county.append('text')
+				.attr('x', width_county_map/2)
+				.attr('dy', -25)
+				.attr('id', 'county-title')
+				.style('text-anchor', 'middle')
+				.text('Top Counties by ' + attrs['Tweets']['human']);
 
 
 			draw_scatter(map_file.features, 'Tweets', sel);// update scatter
@@ -382,27 +399,28 @@ function set_votes() {
 		context_votes.append('g')
 			.attr("class", "legendQuant")
 			.attr('id', 'vote-dem')
-			.attr("transform", "translate(20," + (height_vote_map * .7) + ")");
+			.attr("transform", "translate(" + (width_vote_map-50) + "," + (height_vote_map * .9) + ")");
 		context_votes.append('g')
 			.attr("class", "legendQuant")
 			.attr('id', 'vote-gop')
-			.attr("transform", "translate(20," + (height_vote_map * .95) + ")");
+			.attr("transform", "translate(20," + (height_vote_map * .9) + ")");
 		var dem_legend = d3.legendColor()
 				.labelFormat(attrs['Votes_Demo']['form'])
 				.title(attrs['Votes_Demo']['human'])
 				.titleWidth(200)
-				.shapeWidth(20)
+				.shapeWidth(30)
 				.shapeHeight(15)
-				.shapePadding(25)
+				.shapePadding(30)
 				.orient('horizontal')
 				.scale(color_dem);
 		var gop_legend = d3.legendColor()
 				.labelFormat(attrs['Votes_Gop']['form'])
 				.title(attrs['Votes_Gop']['human'])
+				.ascending(true)
 				.titleWidth(200)
-				.shapeWidth(20)
+				.shapeWidth(30)
 				.shapeHeight(15)
-				.shapePadding(25)
+				.shapePadding(30)
 				.orient('horizontal')
 				.scale(color_gop);
 		context_votes.select("#vote-dem").call(dem_legend);
@@ -440,7 +458,7 @@ function highlight_county(county, attr) {
 		.style('border', '5px solid' + fill_color)
 		.style('opacity', 1);
 
-	tooltip_county.append("h3").text(props.County_Nam +', '+ props.Abbreviati);
+	tooltip_county.append("h3").text(props.County_Nam +', '+ props.Abbreviati).style('text-decoration', 'underline');
 	tooltip_county.append('div').text(attr +': ' + props[attr]);
 	tooltip_county.append('div').text('Tweets: ' + num_tweets);
 
@@ -477,8 +495,8 @@ function unhighlight_county(county) {
 		.attr('r', 3.5)
 		.style('opacity', 0.7)
 		.style('fill', '#ccc')
-		.style('stroke', null)
-		.style('stroke-width', null);
+		.style('stroke', '#222')
+		.style('stroke-width', 0.2);
 	svg_bar.select(fips).transition(t)
 		.style('stroke', null)
 		.style('stroke-width', null);
@@ -499,14 +517,14 @@ function highlight_state(state) {
 			fill_color = get_st_color(state);
 
 	tooltip_votes.html("");
-	tooltip_county.style('visibility', 'visible')
+	tooltip_votes.style('visibility', 'visible')
 		.style('border', '5px solid' + fill_color)
 		.style('opacity', 1);
 
-	tooltip_county.append("h3").text('2016 Election - ' + abbrv);
-	tooltip_county.append('div').text('# Tweets: ' + attrs['Tweets']['form'](num_tweets));
-	tooltip_county.append('div').text('# Democratic votes: ' + num_dem + '      |   % Votes: ' + dem_rate);
-	tooltip_county.append('div').text('# Republican votes: ' + num_gop + '      |   % Votes: ' + gop_rate);
+	tooltip_votes.append("h3").text('2016 Election - ' + abbrv).style('text-decoration', 'underline');
+	tooltip_votes.append('div').text('# Tweets: ' + attrs['Tweets']['form'](num_tweets));
+	tooltip_votes.append('div').text('# Democratic votes: ' + num_dem + '      |   % Votes: ' + dem_rate);
+	tooltip_votes.append('div').text('# Republican votes: ' + num_gop + '      |   % Votes: ' + gop_rate);
 
 	svg_vote.selectAll('path.state')	// dim other counties
 		.style('opacity', 0.3)
@@ -522,12 +540,7 @@ function move_state() {
 }
 function unhighlight_state(state) {
 	tooltip_votes.style('visibility', 'hidden');
-	svg_vote.selectAll('path.state').style('opacity', 1);
-
-	var props = state.properties,
-			abbrv = props.STUSPS10,
-			selector = '.st-' + abbrv;
-	svg_vote.select(selector).transition(t)
+	svg_vote.selectAll('path.state').transition(t)
 		.style('opacity', 0.7)
 		.style('stroke', '#777');
 }
@@ -540,13 +553,3 @@ function get_st_color(st) {
 		party = (gop > dem) ? color_gop(gop) : color_dem(dem);
 	return party;
 }
-
-
-
-/*var cartogram = d3.cartogram()
-	.projection(projection_county)
-	.value()*/
-
-/*
-eg = d3.set([x, y, ..., z])
-eg.has(key)*/

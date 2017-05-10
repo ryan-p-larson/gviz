@@ -15,7 +15,7 @@ var col_xs_width = d3.select('#width-setter').node().getBoundingClientRect().wid
 
 // heights
 var height_world_map = (width_world_map / 2.5) - margin_map.top - margin_map.bottom,
-    height_timeline = (height_world_map / 3) - margin_timeline.top - margin_timeline.bottom,
+    height_timeline = (height_world_map / 2.5) - margin_timeline.top - margin_timeline.bottom,
     height_county_bar = (width_county_bar * .75) - margin_county_bar.top - margin_county_bar.bottom,
     height_county_map = height_world_map,
     height_scatter = (width_scatter * .75) - margin_scatter.top - margin_scatter.bottom,
@@ -35,7 +35,7 @@ var x_timeline = d3.scaleTime().rangeRound([0, width_timeline]),
     scale_tweets = d3.scaleThreshold().range([0.5, 0.66, 0.75, 0.83, 1]);
 
 // Projections (geographic scales)
-var projection_world = d3.geoMercator().center([20, -15]).scale(175),
+var projection_world = d3.geoMercator().center([10, 10]).scale(175),
     projection_county = d3.geoAlbers();
 
 // paths
@@ -143,7 +143,7 @@ var tooltip_county =  d3.select("body")
         .style("position", "absolute")
         .style("z-index", "10")
         .style("visibility", "hidden"),
-    t = d3.transition(100).ease(d3.easePolyIn);
+    t = d3.transition(100);
 
 // Attributes!
 var attrs = {
