@@ -250,24 +250,25 @@ function set_county() {
 	d3.json('data/external/maps/Updated_Export_TOPO.json', function(geoJ) {
 
 		var map_file = topojson.feature(geoJ, geoJ.objects['Updated_export']);
+		map_file.features = map_file.features.filter(function(d) {
+			return (d.properties.Abbreviati !== 'AK') &&
+			(d.properties.Abbreviati !== 'HI') &&
+			(d.properties.FID_1 !== 2201) &&
+			(d.properties.FID_1 !== 2232) &&
+			(d.properties.FID_1 !== 2270) &&
+			(d.properties.FID_1 !== 2280);
+		});
 		this.counties = map_file.features.map(format_county);
 
-		// Filter out the counties without tweets, and AK/HI
-		map_file.features = map_file.features.filter(function(d) {
-			return (d.properties.Tweets) &&
- 					(d.properties.FIPS !== 2090) &&
-					(d.properties.FIPS !== 2020) &&
-					(d.properties.FIPS !== 15009) &&
-					(d.properties.FIPS !== 15003);
-		});
-
 		// SCALES
-		color_county.domain(map_file.features.map(function(d) { return d.properties['Tweets']; }));
+		color_county.domain(map_file.features
+				.filter(function(d) { return d.properties.Tweets; })
+				.map(function(d) { return d.properties['Tweets']; }));
 		projection_county.fitSize([width_county_map, height_county_map], map_file);
 		path_county.projection(projection_county);
 
 		draw_scatter(map_file.features, 'Tweets', 'Population');	// SCATTER
-		var top_counties = get_top_x_by_y(map_file.features, 'Tweets', 15);
+		var top_counties = get_top_x_by_y(map_file.features, 'Tweets', 20);
 		draw_bars(top_counties, 'Tweets', 'County_Nam');			// BAR
 
 		// highlight the top scatter points
@@ -282,7 +283,7 @@ function set_county() {
       		.enter().append('path')
 				.attr('class', function(d) { return 'county FIPS-' + d.properties.FIPS; })
 	      .attr('d', path_county)
-	      .style('fill', function(d) { return color_county(d.properties.Tweets); })
+	      .style('fill', function(d) { return d.properties.Tweets ? color_county(d.properties.Tweets) : '#dddddd'; })
 				.on('mouseover', function(d) { highlight_county(d, 'Population')})
 				.on('mousemove', move_county)
 				.on('mouseout', unhighlight_county);
@@ -301,7 +302,8 @@ function set_county() {
 		var legend = d3.legendColor()
 			  .labelFormat(d3.format("d"))
 			  .title(attrs['Tweets']['human'])
-			  .titleWidth(100)
+				.ascending(true)
+				.titleWidth(200)
 				.shapeWidth(25)
 				.shapeHeight(15)
 				.shapePadding(5)
@@ -399,7 +401,7 @@ function set_votes() {
 		context_votes.append('g')
 			.attr("class", "legendQuant")
 			.attr('id', 'vote-dem')
-			.attr("transform", "translate(" + (width_vote_map-50) + "," + (height_vote_map * .9) + ")");
+			.attr("transform", "translate(" + (width_vote_map-231) + "," + (height_vote_map * .9) + ")");
 		context_votes.append('g')
 			.attr("class", "legendQuant")
 			.attr('id', 'vote-gop')
@@ -453,6 +455,7 @@ function highlight_county(county, attr) {
 			value = props[attr],
 			fill_color = color_county(value);
 
+	console.log(props);
 	tooltip_county.html("");
 	tooltip_county.style('visibility', 'visible')
 		.style('border', '5px solid' + fill_color)
@@ -544,7 +547,6 @@ function unhighlight_state(state) {
 		.style('opacity', 0.7)
 		.style('stroke', '#777');
 }
-
 
 function get_st_color(st) {
 	var props = st.properties,

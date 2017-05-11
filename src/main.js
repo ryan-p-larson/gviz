@@ -28,9 +28,9 @@ var x_timeline = d3.scaleTime().rangeRound([0, width_timeline]),
 		y_county_bar = d3.scaleBand().range([0, height_county_bar]).padding(0.4),
     x_scatter = d3.scaleLinear().range([0, width_scatter]),
     y_scatter = d3.scaleLinear().range([height_scatter, 0]),
-	  color_gop = d3.scaleQuantile().range(['#f7f7f7', '#fddbc7', '#ef8a62', '#b2182b']),
-	  color_dem = d3.scaleQuantile().range(['#f7f7f7','#d1e5f0', '#67a9cf','#2166ac']),
-    color_county = d3.scaleQuantile().range(['#f1eef6','#bdc9e1','#74a9cf','#2b8cbe','#045a8d']),
+	  color_gop = d3.scaleQuantile().range(['#fee5d9','#fcae91','#fb6a4a','#cb181d']),
+	  color_dem = d3.scaleQuantile().range(['#eff3ff','#bdd7e7','#6baed6','#2171b5']),
+    color_county = d3.scaleQuantile().range(['#d0d1e6','#a6bddb','#74a9cf','#2b8cbe','#045a8d']),
     color_politics = d3.scaleQuantile().range(['#b2182b','#ef8a62','#fddbc7','#d1e5f0','#67a9cf','#2166ac']),
     scale_tweets = d3.scaleThreshold().range([0.5, 0.66, 0.75, 0.83, 1]);
 
