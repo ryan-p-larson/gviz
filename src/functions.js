@@ -451,11 +451,9 @@ function filter_message_range(data, start=false, stop=false) {
 function highlight_county(county, attr) {
 	var props = county.properties,
 	    fips = '.FIPS-' + props.FIPS,
-			num_tweets = props.Tweets;
 			value = props[attr],
-			fill_color = color_county(value);
+			fill_color = (props.Tweets) ? color_county(props.Tweets) : '#cccccc';
 
-	console.log(props);
 	tooltip_county.html("");
 	tooltip_county.style('visibility', 'visible')
 		.style('border', '5px solid' + fill_color)
@@ -463,7 +461,7 @@ function highlight_county(county, attr) {
 
 	tooltip_county.append("h3").text(props.County_Nam +', '+ props.Abbreviati).style('text-decoration', 'underline');
 	tooltip_county.append('div').text(attr +': ' + props[attr]);
-	tooltip_county.append('div').text('Tweets: ' + num_tweets);
+	tooltip_county.append('div').text('Tweets: ' + props.Tweets);
 
 	svg_county.selectAll('path.county')	// dim other counties
 		.style('opacity', 0.3)
@@ -502,7 +500,7 @@ function unhighlight_county(county) {
 		.style('stroke-width', 0.2);
 	svg_bar.select(fips).transition(t)
 		.style('stroke', null)
-		.style('stroke-width', null);
+		.style('stroke-width', 0);
 }
 function move_county() {
 	return tooltip_county.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
