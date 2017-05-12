@@ -29,7 +29,7 @@ cols_scrape = ['date', 'username', 'tweetID', 'message', 'retweet', 'longitude',
 
 ## Helpers
 # make dirs + names
-format_dir_date = strftime('%-m-%-d') + '/'
+format_dir_date = strftime('%m-%d') + '/'
 def make_new_dir_date(d):
     """
     Function to create a new folder at the specified directory.
