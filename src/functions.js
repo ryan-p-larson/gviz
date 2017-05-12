@@ -31,10 +31,21 @@ function draw_world_tweets(data, start=false, stop=false) {
 	context.globalAlpha = 1;
 	context.fillStyle = "#43a2ca";
 
+
+	var rng = get_days(start, stop),
+			new_tweets = [];
+
+	by_day.map(function(d) {
+		if (rng.has(d.key)) {
+			new_tweets.push(d.values);
+		}
+	});
+	var filtered = Array.prototype.concat.apply([], new_tweets);
+
 	if (start !== false) {
-		data.filter(function(d) { return (d.date > start) && (d.date < stop); })
-				.filter(function(d) { return (d.x) && (d.y); })
+		filtered.filter(function(d) { return (d.x) && (d.y); })
 				.forEach(function(d) { context.fillRect(d.x, d.y, 1, 1); });
+				//.filter(function(d) { return (d.date > start) && (d.date < stop); })
 	} else {
 		data.filter(function(d) { return (d.x) && (d.y); })
 				.forEach(function(d) { context.fillRect(d.x, d.y, 1, 1); });
@@ -176,6 +187,13 @@ function set_world() {
 	});
 	d3.csv('data/processed/finals/5-7/combined.csv', format_world_tweets, function(err, tweets) {
 			this.tweets = tweets;
+
+			this.by_day = d3.nest()
+					.key(function(d) { return d.date; })
+					.entries(tweets);
+
+
+
 			draw_world_tweets(tweets);		/* ~MAP~ */
 			set_chart_timeline();					/* ~TIMELINE~ */
 	});
@@ -553,4 +571,10 @@ function get_st_color(st) {
 		gop = props.Votes_Gop,
 		party = (gop > dem) ? color_gop(gop) : color_dem(dem);
 	return party;
+}
+
+function get_days(start, end) {
+	var days = d3.utcDays(start, end),
+			strings = days.map(function(d) { return d.toString(); });
+	return d3.set(strings);
 }

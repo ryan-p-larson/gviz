@@ -5,7 +5,7 @@ var margin_map = {top: 20, right: 20, bottom: 20, left: 20},
     margin_scatter = {top: 40, right: 20, bottom: 40, left: 40};
 
 // widths
-var col_xs_width = d3.select('#width-setter').node().getBoundingClientRect().width,
+var col_xs_width = d3.select('#width-setter').node().getBoundingClientRect().width * .85,
     width_world_map = col_xs_width - margin_map.left - margin_map.right,
     width_timeline = width_world_map - margin_timeline.left - margin_timeline.right,
     width_county_bar = (col_xs_width / 2)*.9 - margin_county_bar.left - margin_county_bar.right,
@@ -35,7 +35,7 @@ var x_timeline = d3.scaleTime().rangeRound([0, width_timeline]),
     scale_tweets = d3.scaleThreshold().range([0.5, 0.66, 0.75, 0.83, 1]);
 
 // Projections (geographic scales)
-var projection_world = d3.geoMercator().center([10, 10]).scale(175),
+var projection_world = d3.geoMercator().center([25, -20]).scale(150),
     projection_county = d3.geoAlbers();
 
 // paths
