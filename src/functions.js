@@ -326,7 +326,8 @@ function set_county() {
 
 			color_county.domain(sel_mapped);			// update new color scale
 			context_county.select(".legendQuant")
-				.call(legend.labelFormat(attrs[sel]['form']));
+				.call(legend.title(attrs[sel]['human'])
+						.labelFormat(attrs[sel]['form']));
 
 			context_county.select('#county-title').transition(t).style('opacity', 0).remove();
 			context_county.append('text')
