@@ -100,3 +100,6 @@ data/processed/
 
 # we don't need to store a huge model
 src/ldig/models/
+
+# Just for annonyances
+*/Thumbs.db
