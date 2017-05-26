@@ -42,6 +42,9 @@ A collection of helpful links and prior work.
 **Inspiration**
 - [NY Times Electoral Map](https://www.nytimes.com/elections/2012/electoral-map.html)
 
+#### D3.js Chart Cartogram
+- [aRanger, by the MinnPost](http://code.minnpost.com/aranger/)
+
 
 #### Natural Language Processing
 

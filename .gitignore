@@ -96,7 +96,10 @@ ENV/
 data/external/scrape/
 
 # Don't tell me, i'll know when a model is ready for a commit
-data/processed/
+data/processed/class
+data/processed/finals
+data/processed/scrape/3-31
+data/processed/scrape/raw-tweets.db
 
 # we don't need to store a huge model
 src/ldig/models/
