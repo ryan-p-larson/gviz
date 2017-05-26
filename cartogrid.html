@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8">
-	<title>GeoViz Project</title>
+	<title>Chart Carto</title>
 
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -33,34 +33,31 @@
 <body>
 <!-- container -->
 <div class="container">
-  <br>
+	<br>
 	<div class="row">
 		<div class="panel panel-default">
+			<div class="panel-heading"><h1>Charts Cartogram</h1></div>
 
-          <div class="panel-heading">
-          	<h1>Charts Cartogram</h1>
-          </div>
-
-          <div class="panel-body">
-						<div class="row">
-							<div class="col-xs-12" id='width-setter'>
-							</div>
-						</div>
-        	</div>
-
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-xs-12" id='width-setter'></div>
+				</div>
 			</div>
+	</div>
 </div>
-
-
-<script src="src/main.js"></script><!-- read in the variables -->
-<script src="src/functions.js"></script><!-- Now get functions (depend on vars) -->
+<script src="src/cartogrid.js"></script>
 <script>
 
-function initialize() {
-
+function init() {
+	window.cg = CartoGrid();
+	d3.csv('data/processed/web/state-tiles.csv', function(states) {
+		states = states.map(function(d) { d.x=+d.x;d.y= +d.y; return d; });
+		d3.select('#width-setter')
+			.datum(states)
+			.call(window.cg);
+	});
 }
-
-window.onload = initialize;
+window.onload = init;
 </script>
 </body>
 </html>
