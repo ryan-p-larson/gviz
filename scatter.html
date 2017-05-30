@@ -49,25 +49,24 @@
 <script src="src/tweetscatter.js"></script>
 <script>
 
-function init() {
-	var scatter = tweetScatter();
-	d3.csv('data/external/caglar/trumptweets.csv', function(data) {
+var scatter = tweetScatter();
+d3.csv('data/external/caglar/trumptweets.csv', function(data) {
 
-		// data mapping + formatting
-		data = data.map(function(d) {
-			d.min = d3.isoParse(d.min);
-			d.count = +d.count;
-			return d;
-		});
-
-		d3.select('#width-setter')
-			.datum(data)
-			.call(scatter);
-
-		console.log(data);
+	// data mapping + formatting
+	data = data.map(function(d) {
+		d.min = d3.isoParse(d.min);
+		d.count = +d.count;
+		return d;
 	});
-}
-window.onload = init;
+
+	d3.select('#width-setter')
+		.datum(data)
+		.call(scatter);
+
+
+});
+
+
 </script>
 </body>
 </html>
