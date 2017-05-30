@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8">
-	<title>GeoViz Project</title>
+	<title>GeoViz</title>
 
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -34,106 +34,36 @@
 <div class="container">
   <br>
 	<div class="row">
-		<div class="panel panel-default">
 
+		<div class="panel panel-default">
           <div class="panel-heading">
           	<h1>GeoVisualization <strong>Project</strong></h1>
           </div>
 
           <div class="panel-body">
-
-					<div class="row">
-						<div class="col-xs-12" id='width-setter'>
-							<h2>Introduction</h2>
-							<p>We used five datasets to accomodate our analysis; education/employment, County populations, Income, Presidential Election results, cartographic shapefiles, and finally a large Twitter scrape corpus. Aside from the Twitter scrape provided by Proffesor Caglar all of the data was provided by various U.S. governments agencies. For our data-driven analysis, we sought to paint broad strokes on the tweets worldwide, the U.S. reactions, and how county attributes might be in anyway correlated.</p>
-
-							<p>Caglar's scrape consists of a tap into Twitter's stream, filtering out only those tweets with the hashtags #immigration, #ban, #BuildTheWall, etc. The tweets were selected to guage the reactionairy sentiment of immigration. Unfortunately the data had to be filtered down severely to comply with GitHub's restrictions. As such, this can be considered an end-user application instead of a insight-heavy prototype.</p>
-
-						</div>
-					</div>
-					<hr>
-					<div class="row" id='world-map-row'>
-						<div class="col-xs-12">
-							<h3>How did the World recieve Trump's immigration ban?</h3>
-							<p>On Janurary 27th, 2017 President Trump ennacted <a href="https://en.wikipedia.org/wiki/Executive_Order_13769">Executive Order 13769</a>. People both at home and abroad were shocked. This map is a 10,000ft view of how people reacted to the order. Notice the sharp spike?</p>
-						</div>
-						<div class="col-xs-12" id="chart-world"></div>
-					</div>
-					<div class="row" id='timeline-row'>
-						<div class="col-xs-12" id="chart-timeline"></div>
-					</div>
-
-					<hr>
-
-					<div class="row">
-						<div class="col-xs-12">
 						<div class="row">
-							<div class="col-xs-6 bottom-column">
-								<h3>County Level Attributes</h3>
-								<p>What kind of county really likes (or dislikes) immigrants? What features are useful in predicting overall outrage.</p>
+
+							<div class="col-xs-12" id='width-setter'>
+								<h3>In Progress</h3>
+								<ul>
+									<li><a href="cartogrid.html">Pseudo-Dorling Charts-Cartogram</a></li>
+									<li><a href="#">Top Tweets Scatterplot</a></li>
+								</ul>
 							</div>
-							<div class="col-xs-3" id='county-legend'></div>
-							<div class="col-xs-3 bottom-column pull-right">
-								<span><b>County Attribute: </b><select id="county-attributes">
-								</select></span>
+							<div class="col-xs-12" id='width-setter'>
+								<h3>Completed</h3>
+								<ul>
+									<li><a href="project.html">Semester Project</a></li>
+									<li><a href="#">Portfolio</a></li>
+								</ul>
 							</div>
-							<div class="col-xs-12" id="chart-county-map"></div>
-						</div>
 
-						<div class="col-xs-6" id="chart-county-bar"></div>
-						<div class="col-xs-6" id="chart-scatter"></div>
-					</div>
+		        </div>
 					</div>
 
-					<hr>
+		</div> <!-- end panel -->
+	</div> <!-- end row -->
+</div> <!-- end container -->
 
-					<div class="row">
-						<div class="col-xs-12">
-							<h3>U.S. Voting Results</h3>
-						</div>
-						<div class="col-xs-12" id="chart-votes"></div>
-					</div>
-
-
-          <div class="row">
-          	<div class="col-xs-12">
-				<h3>Notes</h3>
-
-				<p><b>Sources</b></p>
-
-				<p>The Geospatial data used for this project was obtained from the <a href="https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html">United States Census Bureau</a>. The cartographic boundary shapefiles were created in 2016.  A shapefile of the United States Counties, as well as a shapefile of the 50 states of the United States was used.</p>
-
-				<p>To establish a baseline understanding of each counties make up we grabbed generic <i>population</i> data about U.S. counties produced by the United States Census Bureau. Via the the <a href="https://factfinder.census.gov/faces/nav/jsf/pages/searchresults.xhtml?refresh=t#acsST">American Fact Finder</a> website we investigated population characteristics. To constrain our problem scope we opted to focus only on population and racial breakdown. The values for race included White, Black, American Indian, Asian, Pacific Islander, and Multi Race. Included was the county population.  All the population data came from the 2015 ACS 1-year estimates.</p>
-
-				<p>Both the education and employment data were provided by the United States Department of Agriculture's Economic Research Service <a href="https://www.ers.usda.gov/data-products/county-level-data-sets/">on ers.usda.gov</a>. For <i>employment</i> we obtained the following 2015 county-level attributes: total labor force population, total employed population, total unemployed population, unemployment rate and Median Household Income (U.S. dollars).</p>
-
-				<p>To evaluate counties' <i>education</i> attributes we gathered: Percent of population with less than a High School diploma, Percent of the population with only a high school diploma, percent of the population with some college experience and percent of population with a bachelors degree or higher.  The education attributes are displayed as an average from 2011-2015.</p>
-
-				<p>We obtained the 2016 U.S. Presidential <i>Election</i> data from precompiled sources(thanks <a href="https://github.com/tonmcg/County_Level_Election_Results_12-16">@tonmcg!</a>). The following attributes were obtained and used: total democratic votes, total republican votes, and total votes by county.  The rates of votes for both democrat and republican on the county level are calculated by us. And finally, the vote differential between the leading party and the runner up, and the percent point differential were obtained.  The raw data was obtained from <a href="https://townhall.com/election/2016/president/">TownHall.com</a>, which was then cleaned and made accessible on <a href="https://github.com/tonmcg/County_Level_Election_Results_12-16">GitHub</a>.</p>
-
-			</div>
-          </div>
-				</div><!-- end panel body -->
-
-	      <div class="panel-footer">
-						<span><h6>Credits:</h6><p>Ryan Larson &amp; Bailey Hesse-Withbroe.</p></span>
-				</div>
-
-        </div>
-			</div>
-</div>
-
-
-<script src="src/main-project.js"></script><!-- read in the variables -->
-<script src="src/functions-project.js"></script><!-- Now get functions (depend on vars) -->
-<script>
-
-function initialize() {
-	set_world();
-	set_county();
-}
-
-window.onload = initialize;
-</script>
 </body>
 </html>
