@@ -20,7 +20,6 @@ window.tweetScatter = (function() {
         .y(function(d) { return y_scale(+d.count); })
         .size([width, height]);
 
-
   function chart(selection) {
     selection.each(function(data) {
 
@@ -31,8 +30,6 @@ window.tweetScatter = (function() {
       y_scale
         .domain([0, d3.max(data, function(d) { return +d.count; })])
         .range([height - margin.top - margin.bottom, 0]);
-      //r_scale
-      voronoiDiag = voronoi(data);
 
       var svg = d3.select(this).append('svg')
             .attr('width', width)
@@ -44,7 +41,7 @@ window.tweetScatter = (function() {
       var tweets = g.append('g').attr('class', 'tweets').selectAll('.circle')
         .data(data)
         .enter().append('circle')
-        .attr('class', 'tweet')
+        .attr('class', function(d) { return 'tweet user-' + d.user; })
         .attr('cx', function(d) { return x_scale(d.min); })
         .attr('cy', function(d) { return y_scale(d.count); })
         .attr('r', 5)
@@ -86,6 +83,7 @@ window.tweetScatter = (function() {
             .attr("font-weight", "bold")
             .text("# RT's");
 
+      chart.fillDropdown('#userDropdown', 'user', data);
     });
   }
 
@@ -106,12 +104,18 @@ window.tweetScatter = (function() {
     height = _;
     return chart;
   };
+  chart.data = function(_) {
+    if (!arguments.length) return data;
+    data = _;
+    return chart;
+  };
 
   // Interaction
   chart.mouseover = function(site) {
     var tweet = site.data,
         val = tweet.count,
-        mess = tweet.tweet;
+        mess = tweet.tweet,
+        user = tweet.user;
 
     tooltip.style("top", (site[1] + "px")).style("left", (site[0] + "px"));
     tooltip.html("");
@@ -119,7 +123,7 @@ window.tweetScatter = (function() {
       .style('opacity', 1)
       .style("border", "3px solid " + '#326ada');
 
-    tooltip.append("h3").text('Username: <@realDonaldTrump>');
+    tooltip.append("h3").text('Username: @' + user);
     tooltip.append("div").text("Retweets: " + val);
     tooltip.append("div").text("Text: " + mess);
 
@@ -130,14 +134,32 @@ window.tweetScatter = (function() {
     sel.attr('r', 10).style("opacity", 1);
     sel.raise();
   }
-  chart.mousemove = function() {
-    return tooltip.style("top", (d3.event.pageY-52) + "px").style("left", (d3.event.pageX+18) + "px");
-  }
   chart.mouseout = function() {
     tooltip.style("visibility", "hidden")
     d3.selectAll(".tweet")
       .attr('r', 5)
       .style("opacity", 1);
+  }
+
+  chart.fillDropdown = function(divID, attr, data) {
+    var users = d3.nest()
+      .key(function(d) { return d[attr]; })
+      .rollup(function(leaves) { return leaves.length;})
+      .entries(data)
+      .sort(function(a, b) { return b.value - a.value; });
+
+    var drop = d3.select(divID);
+    drop.selectAll('option')
+      .data(users)
+      .enter().append('option')
+      .attr('value', function(d) { return d.key; })
+      .text(function(d) { return d.key + ' (' + d.value + ')'; });
+
+    drop.on('change', function(d) {
+      var value = '.user-' + d3.select(this).property("value");
+      d3.selectAll('.tweet').style('fill', '#326ada');
+      d3.selectAll(value).style('fill', '#ff00ff').raise();
+    });
   }
 
   return chart;

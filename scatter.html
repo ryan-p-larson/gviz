@@ -36,7 +36,21 @@
 	<br>
 	<div class="row">
 		<div class="panel panel-default">
-			<div class="panel-heading"><h1>Tweets Scatter</h1></div>
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-6"><h1>Tweets Scatter</h1></div>
+					<div class="col-xs-3">
+							<p>Username (# tweets)</p>
+							<select name="users" id='userDropdown'></select>
+					</div>
+					<div class="col-xs-3">
+
+							<p>Category</p>
+							<select name="categories" id='userCategory'></select>
+
+					</div>
+				</div>
+			</div>
 
 			<div class="panel-body">
 				<div class="row">
@@ -50,14 +64,19 @@
 <script>
 
 var scatter = tweetScatter();
-d3.csv('data/external/caglar/trumptweets.csv', function(data) {
-
+//d3.csv('data/external/caglar/trumptweets.csv', function(data) {
+//d3.csv('data/external/caglar/tweets_top100opinionleaders.csv', function(data) {
+d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
+//d3.csv('data/external/caglar/top100_with_categories.csv', function(data) {
+	console.log(data);
 	// data mapping + formatting
 	data = data.map(function(d) {
 		d.min = d3.isoParse(d.min);
 		d.count = +d.count;
 		return d;
 	});
+
+	data = data.map(function(d) { var split = d.tweet.split('@'); d.user = split[1]; return d; });
 
 	d3.select('#width-setter')
 		.datum(data)
