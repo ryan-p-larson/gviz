@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>Tweet Scatter</title>
+
+	<!-- CSS -->
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.css" />
+
+	<!-- Bootstrap and jQuery -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<!-- Lodash to make some functions easier -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+	<!-- Simple statistics for Jenks natural breaks -->
+	<script src="https://unpkg.com/simple-statistics@2.3.0/dist/simple-statistics.min.js"></script>
+
+	<!-- D3.js + TopoJson -->
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+
+	<!-- D3 legend + annotation -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.21.0/d3-legend.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.js"></script>
+
+	<!-- Styling -->
+	<link href="src/style.css" rel="stylesheet">
+</head>
+
+<body>
+<!-- container -->
+<div class="container">
+	<br>
+	<div class="row">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h1>Tweets Scatter</h1></div>
+
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-xs-12" id='width-setter'></div>
+				</div>
+			</div>
+	</div>
+</div>
+
+<script src="src/tweetscatter.js"></script>
+<script>
+
+function init() {
+	var scatter = tweetScatter();
+	d3.csv('data/external/caglar/trumptweets.csv', function(data) {
+
+		// data mapping + formatting
+		data = data.map(function(d) {
+			d.min = d3.isoParse(d.min);
+			d.count = +d.count;
+			return d;
+		});
+
+		d3.select('#width-setter')
+			.datum(data)
+			.call(scatter);
+
+		console.log(data);
+	});
+}
+window.onload = init;
+</script>
+</body>
+</html>
