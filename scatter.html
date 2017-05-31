@@ -38,17 +38,22 @@
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<div class="row">
-					<div class="col-xs-6"><h1>Tweets Scatter</h1></div>
-					<div class="col-xs-3">
-							<p>Username (# tweets)</p>
-							<select name="users" id='userDropdown'></select>
+					<div class="col-xs-8">
+						<h1>Tweet Scatter</h1>
+						<p><b>How to use this chart: </b>There are three methods of interacting with the scatterplot. First is the <i>mouse</i>, mousing over and moving will render a tooltip with more information. Next is the <i>dropdown</i>, selecting an option will filter to only one user's tweets. Finally you can mouseover the <i>legend</i> to highlight and raise a category.</p>
 					</div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-xs-7"><h4 id='subtitle'></h4></div>
+					<div class="col-xs-2"><button type="button" id="resetChart" class="btn btn-default" style="position:relative;bottom:-20px;">Reset Chart</button></div>
 					<div class="col-xs-3">
-
-							<p>Category</p>
-							<select name="categories" id='userCategory'></select>
-
+							<p><b>Username</b> (# tweets)</p>
+							<select name="users" id='userDropdown'>
+								<option selected disabled>Choose a user</option>
+							</select>
 					</div>
+
 				</div>
 			</div>
 
@@ -62,7 +67,6 @@
 
 <script src="src/tweetscatter.js"></script>
 <script>
-
 var category_mapping = {
 	"": '#d9d9d9',
 	"celebrity": '#bebada',
@@ -73,24 +77,14 @@ var category_mapping = {
 	"troll": '#fb8072'
 }
 
-var scatter = reUsableChart('test.csv');
 //reUsableChart('data/external/caglar/tweetstop100bryce.csv');
 //d3.csv('data/external/caglar/trumptweets.csv', function(data) {
 //d3.csv('data/external/caglar/tweets_top100opinionleaders.csv', function(data) {
 //d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
 //d3.csv('data/external/caglar/top100_with_categories.csv', function(data) {
 
-
-
-
-
-d3.select('#width-setter')
-	.call(scatter);
-
-
-
-
-
+var scatter = reUsableChart('test.csv');
+d3.select('#width-setter').call(scatter);
 </script>
 </body>
 </html>
