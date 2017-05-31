@@ -63,11 +63,27 @@
 <script src="src/tweetscatter.js"></script>
 <script>
 
-var scatter = reUsableChart('data/external/caglar/tweetstop100bryce.csv');
+var category_mapping = {
+	"": '#d9d9d9',
+	"celebrity": '#bebada',
+	"journalist": '#b3de69',
+	"academic": '#8dd3c7',
+	"politician": '#80b1d3',
+	"activist": '#fdb462',
+	"troll": '#fb8072'
+}
+
+var scatter = reUsableChart('test.csv');
+//reUsableChart('data/external/caglar/tweetstop100bryce.csv');
 //d3.csv('data/external/caglar/trumptweets.csv', function(data) {
 //d3.csv('data/external/caglar/tweets_top100opinionleaders.csv', function(data) {
 //d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
 //d3.csv('data/external/caglar/top100_with_categories.csv', function(data) {
+
+
+
+
+
 d3.select('#width-setter')
 	.call(scatter);
 

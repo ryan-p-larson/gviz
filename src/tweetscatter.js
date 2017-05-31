@@ -19,7 +19,7 @@ var reUsableChart = function(_myData) {
       .style("visibility", "hidden");
 
   // 1.1 All options that should be accessible to caller
-  var margin = {top: 20, right: 20, bottom: 40, left: 40};
+  var margin = {top: 20, right: 20, bottom: 50, left: 50};
   var width = 960;
   var height = 600;
   var x_scale = d3.scaleTime();
@@ -28,7 +28,10 @@ var reUsableChart = function(_myData) {
   var y_axis = d3.axisLeft().scale(y_scale);
   var xValue = function(d) { return x_scale(d.min); };
   var yValue = function(d) { return y_scale(d.count); };
-  var color;
+  var opacity = {dehighlight: 0.3, normal: 0.3, highlight: 1};
+  var color = d3.scaleOrdinal()
+    .domain(["", "academic", "activist", "celebrity", "journalist", "politician", "troll"])
+    .range(['#d9d9d9', '#bebada', '#b3de69', '#8dd3c7', '#80b1d3', '#fb8072', '#fdb462']);
   var data = [];
   var debugOn = false;
 
@@ -86,42 +89,47 @@ var reUsableChart = function(_myData) {
   ////////////////////////////////////
   function mousemove() {
     var [mx, my] = d3.mouse(this);
-    var site = voronoi.find(mx, my, (width/8));
+    var site = voronoi.find(mx, my);
     mouseoverTooltip(site);
   }
   function mouseoverTooltip(site) {
-
     // specific site
     var tweet = site.data,
         val = tweet.count,
-        mess = tweet.tweet,
+        mess = tweet.message,
+        cat = tweet.category,
         id = '#tweetID-' + tweet.id,
         user = tweet.user;
 
     tooltip.style("top", (site[1] + "px")).style("left", (site[0] + "px"));
     tooltip.html("");
     tooltip.style("visibility", "visible")
-      .style('opacity', 1)
-      .style("border", "3px solid " + fillColor);
+      .style('opacity', opacity.highlight)
+      .style("border", "3px solid " + category_mapping[cat]);
 
     tooltip.append("h3").text('Username: @' + user);
     tooltip.append("div").text("Retweets: " + val);
     tooltip.append("div").text("Text: " + mess);
 
     g.selectAll(".tweet")
-      .attr('r', 5)
-      .style("opacity", 0.3);
+      .attr('r', radiusValue)
+      .style("opacity", opacity.dehighlight);
 
     var selector = d3.select(id);
-    selector.attr('r', 10).style("opacity", 1).raise();
+    selector
+      .attr('r', 10)
+      .style("opacity", opacity.highlight)
+      .style('stroke', '#eee')
+      .style('stroke-width', '0.5px')
+      .raise();
   }
   function mouseout() {
     tooltip.style("visibility", "hidden")
     d3.selectAll(".tweet")
-      .attr('r', 5)
-      .style("opacity", 1);
+      .attr('r', radiusValue)
+      .style('stroke', null)
+      .style("opacity", opacity.normal);
   }
-
   function fillDropdown(data) {
     var users = d3.nest()
       .key(function(d) { return d.user; })
@@ -146,11 +154,24 @@ var reUsableChart = function(_myData) {
       drawChart(tweets);
     });
   }
+  function addLegend() {
+    // add g first
+    var g_legend = g.append('g')
+        .attr('class', 'legend')
+        .attr('transform', 'translate('+ (width*.85) +','+ (height*0.05) +')');
+    var legend = d3.legendColor()
+        .title('Category of User')
+        .shapePadding(10)
+        .labelAlign('end')
+        //.labelOffset(100)
+        .orient('vertical')
+        .scale(color);
+    d3.select('.legend').call(legend);
+  }
 
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
-
   function createChart(selection, _file) {
     var data = _file;
 	   if (debugOn) { console.log(data);}
@@ -167,7 +188,9 @@ var reUsableChart = function(_myData) {
 
       drawChart(data);
       fillDropdown(data);
+      addLegend()
       drawMarkings('all');
+      drawVoronoi(data);
     });
   }
 
@@ -180,6 +203,8 @@ var reUsableChart = function(_myData) {
     y_scale
       .domain([0, d3.max(data, function(d) { return +d.count; })])
       .range([height - margin.top - margin.bottom, 0]);
+    color
+      .domain(data.map(function(d) { return d.category; }));
 
     // Enter, update, exit
     var tweets = g.select('.tweets').selectAll('.tweet').data(data);
@@ -191,7 +216,9 @@ var reUsableChart = function(_myData) {
       .attr('cx', xValue)
       .attr('cy', yValue)
       .attr('r', radiusValue)
-      .style('fill', fillColor);
+      .style('opacity', opacity.normal)
+      //.style('fill', fillColor);
+      .style('fill', function(d) { return category_mapping[d.category]; });
 
     drawVoronoi(data);
   }
@@ -207,6 +234,7 @@ var reUsableChart = function(_myData) {
       //.attr('height', height - margin.top - margin.bottom)
       .attr('width', width)
       .attr('height', height)
+      .attr('transform', 'translate(' + -margin.left + ',' + -margin.top + ')')
       .style('opacity', 0)
       .on('mousemove', mousemove)
       .on('mouseout', mouseout);
@@ -215,18 +243,18 @@ var reUsableChart = function(_myData) {
     g.selectAll('.axis').remove();
     // Axes
    g.append('g')
-       .attr("transform", "translate(0," + y_scale.range()[0] + ")")
-       .attr('class', 'x axis')
+       .attr("transform", "translate(0," + (y_scale.range()[0] + margin.bottom/3) + ")")
+       .attr('class', 'axis')
        .call(x_axis)
         .select(".tick:last-of-type text")
         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
-        .attr("y", -10)
+        .attr("y", 30)
         .attr("dy", null)
         .attr("font-weight", "bold")
         .text('Date of 1st RT');
    g.append('g')
-       .attr("transform", "translate(0," + x_scale.range()[0] + ")")
-       .attr('class', 'y axis')
+       .attr("transform", "translate("+  -(margin.left/3) +"," + (x_scale.range()[0]) + ")")
+       .attr('class', 'axis')
        .call(y_axis.tickFormat(d3.format(".0s")))
         .select(".tick:last-of-type text")
         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
@@ -247,12 +275,12 @@ var reUsableChart = function(_myData) {
       // formatting
       data = f.map(function(d, i) {
         d.id = i;
-    		d.min = d3.isoParse(d.min);
+    		d.min = d3.isoParse(d.date);
     		d.count = +d.count;
     		return d;
     	});
-      data = data.map(function(d) { var split = d.tweet.split('@'); d.user = split[1].replace(' ',''); return d; });
-
+      //data = data.map(function(d) { var split = d.tweet.split('@'); d.user = split[1].replace(' ',''); return d; });
+      console.table(data);
       createChart(selection, data);
     });
   }
