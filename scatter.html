@@ -60,30 +60,19 @@
 	</div>
 </div>
 
-<script src="src/tweetscatter.js"></script>
+<script src="src/reusable_scatter.js"></script>
 <script>
 
-var scatter = tweetScatter();
+var scatter = reUsableChart('data/external/caglar/tweetstop100bryce.csv');
 //d3.csv('data/external/caglar/trumptweets.csv', function(data) {
 //d3.csv('data/external/caglar/tweets_top100opinionleaders.csv', function(data) {
-d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
+//d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
 //d3.csv('data/external/caglar/top100_with_categories.csv', function(data) {
-	console.log(data);
-	// data mapping + formatting
-	data = data.map(function(d) {
-		d.min = d3.isoParse(d.min);
-		d.count = +d.count;
-		return d;
-	});
-
-	data = data.map(function(d) { var split = d.tweet.split('@'); d.user = split[1]; return d; });
-
-	d3.select('#width-setter')
-		.datum(data)
-		.call(scatter);
+d3.select('#width-setter')
+	.call(scatter);
 
 
-});
+
 
 
 </script>
