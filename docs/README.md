@@ -2,6 +2,12 @@
 
 A collection of helpful links and prior work.
 
+
+#### Sources
+
+**State Populations**
+- State population totals, U.S. Census 2016 estimates. [Data](https://www2.census.gov/programs-surveys/popest/tables/2010-2016/state/totals/), and [documentation](https://www2.census.gov/programs-surveys/popest/technical-documentation/file-layouts/2010-2016/nst-est2016-alldata.pdf).
+
 #### D3.js
 
 **Elijah Meeks**
