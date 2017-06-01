@@ -35,8 +35,8 @@ var reUsableChart = function(_myData) {
 
   // 1.1 All options that should be accessible to caller
   var margin_grid = {top: 10, right: 10, bottom: 10, left:10};
-  var width_grid = 1000 - margin_grid.left - margin_grid.right;
-  var height_grid = 500 - margin_grid.top - margin_grid.bottom;
+  var width_grid = 800 - margin_grid.left - margin_grid.right;
+  var height_grid = 400 - margin_grid.top - margin_grid.bottom;
   var padding_grid = 0.1;
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
@@ -48,6 +48,8 @@ var reUsableChart = function(_myData) {
   var y_scale_st = d3.scaleLinear();
   var x_axis_st = d3.axisBottom().scale(x_scale_st).tickValues([-4, 0, 4]).tickSize(3).tickSizeInner(0);
   var y_axis_st = d3.axisLeft().scale(y_scale_st).ticks(5).tickFormat(d3.format(".0s")).tickSize(3).tickSizeInner(0);
+  var xValue = function(d) { return d.week; };
+  var yValue = function(d) { return d.rate; };
 
   var barPadding = 1;
   var fillColor = 'coral';
@@ -131,6 +133,14 @@ var reUsableChart = function(_myData) {
     y_scale_st = _;
     return chartAPI;
   }
+  chartAPI.yValue = function(_) {
+    if (!arguments.length) return yValue;
+    yValue = _;
+    y_scale_st.domain([0, d3.max(data, function(d) { return yValue(d); })]);
+    g_states.selectAll('.bar').transition(200)
+      .attr('y', function(d) { return y_scale_st(yValue(d)); })
+      .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); });
+  }
   chartAPI.state_mapping = function(_) {
     if (!arguments.length) return state_mapping;
     state_mapping = _;
@@ -189,11 +199,11 @@ var reUsableChart = function(_myData) {
 
       // Overall state stuff here
       x_scale_st
-        .domain([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
+        .domain([-4, -3, -2, -1, 0, 1, 2, 3, 4])
         .range([0, tile_width])
         .padding(padding_grid);
       y_scale_st
-        .domain([0, d3.max(data, function(d) { return d.rate; })])
+        .domain([0, d3.max(data, function(d) { return yValue(d); })])
         .range([tile_height, 0]);
       states = d3.nest()
         .key(function(d) { return d.st; })
@@ -233,11 +243,11 @@ var reUsableChart = function(_myData) {
       g_states.selectAll('rect')
         .data(function(d) { return d.values; })
           .enter().append('rect')
-        .attr('class', function(d) { return 'rate wk-' + d.week; })
-        .attr('x', function(d) { return x_scale_st(d.week); })
+        .attr('class', function(d) { return 'bar wk-' + d.week; })
+        .attr('x', function(d) { return x_scale_st(xValue(d)); })
         .attr('width', x_scale_st.bandwidth())
-        .attr('y', function(d) { return y_scale_st(d.rate); })
-        .attr('height', function(d) { return tile_height - y_scale_st(d.rate); })
+        .attr('y', function(d) { return y_scale_st(yValue(d)); })
+        .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); })
         .style('fill', function(d) { return color(d.week); });
 
       // Axes
@@ -262,6 +272,7 @@ var reUsableChart = function(_myData) {
           .attr("font-weight", "bold")
           .text("");
         */
+
     });
   }
 
@@ -280,7 +291,8 @@ var reUsableChart = function(_myData) {
         d.week = +d.week;
         return d;
       });
-      createChart(selection, f);
+      var filt = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
+      createChart(selection, filt);
     });
 
 

@@ -53,11 +53,37 @@
 	<br>
 	<div class="row">
 		<div class="panel panel-default">
-			<div class="panel-heading"><h1>Charts Cartogram</h1></div>
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-8"><h1>Charts Cartogram</h1></div>
+					<div class="col-xs-4">
+						<button type="button" id="btnRate" class="btn btn-default" style="position:relative;bottom:-20px;">Rate</button>
+						<button type="button" id="btnCnt" class="btn btn-default" style="position:relative;bottom:-20px;">Count</button>
+					</div>
+				</div>
+			</div>
 
 			<div class="panel-body">
 				<div class="row">
-					<div class="col-xs-12" id='width-setter'></div>
+					<div class="col-xs-3"><h3><strong>Scale</strong></h3></div>
+					<div class="col-xs-9"><h3><strong>Map</strong></h3></div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-xs-3"><h3>Linear</h3></div>
+					<div class="col-xs-9" id='width-setter1'></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-3"><h3>Square Root</h3></div>
+					<div class="col-xs-9" id='width-setter2'></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-3"><h3>Log</h3></div>
+					<div class="col-xs-9" id='width-setter3'></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-3"><h3>?</h3></div>
+					<div class="col-xs-9" id='width-setter4'></div>
 				</div>
 			</div>
 	</div>
@@ -65,8 +91,31 @@
 <script src="src/cartogrid.js"></script>
 <script>
 
-var cg = reUsableChart('data/processed/web/state-tweet-rates.csv');
-d3.select('#width-setter').call(cg);
+var linear_cg = reUsableChart('data/processed/web/state-tweet-rates.csv');
+d3.select('#width-setter1').call(linear_cg);
+
+var sqrt_cg = reUsableChart('data/processed/web/state-tweet-rates.csv')
+		.y_scale_st(d3.scaleSqrt());
+d3.select('#width-setter2').call(sqrt_cg);
+
+var log_cg = reUsableChart('data/processed/web/state-tweet-rates.csv')
+		.y_scale_st(d3.scalePow());
+d3.select('#width-setter3').call(log_cg);
+
+
+// Interactivity
+d3.select('#btnRate').on('click', function() {
+	var func = function(d) { return d.rate; };
+	linear_cg.yValue(func);
+	log_cg.yValue(func);
+	sqrt_cg.yValue(func);
+});
+d3.select('#btnCnt').on('click', function() {
+	var func = function(d) { return d.cnt; };
+	linear_cg.yValue(func);
+	log_cg.yValue(func);
+	sqrt_cg.yValue(func);
+});
 
 </script>
 </body>
