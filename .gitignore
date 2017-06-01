@@ -106,3 +106,5 @@ src/ldig/models/
 
 # Just for annonyances
 */Thumbs.db
+
+src/secret_key.py
