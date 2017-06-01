@@ -28,6 +28,23 @@
 
 	<!-- Styling -->
 	<link href="src/style.css" rel="stylesheet">
+	<style>
+		.state {
+			stroke: #333;
+			stroke-width: 0.5px;
+			fill: none;
+		}
+		.st-title {
+			text-anchor: middle;
+			font-family: sans-serif;
+			font-size: 11px;
+		}
+		.axis path, .axis line {
+        fill: none;
+        stroke: #575757;
+        shape-rendering: crispEdges;
+    }
+	</style>
 </head>
 
 <body>
@@ -48,16 +65,9 @@
 <script src="src/cartogrid.js"></script>
 <script>
 
-function init() {
-	window.cg = CartoGrid();
-	d3.csv('data/processed/web/state-tiles.csv', function(states) {
-		states = states.map(function(d) { d.x=+d.x;d.y= +d.y; return d; });
-		d3.select('#width-setter')
-			.datum(states)
-			.call(window.cg);
-	});
-}
-window.onload = init;
+var cg = reUsableChart('data/processed/web/state-tweet-rates.csv');
+d3.select('#width-setter').call(cg);
+
 </script>
 </body>
 </html>
