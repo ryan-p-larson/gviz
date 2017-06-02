@@ -89,24 +89,7 @@ def format_tweet_date(t):
     # return just the day
     return corrected_dt.date()
 
-# SQL
-def save_df_to_sql(df, conn):
-    try:
-        df.to_sql("Raw", conn, if_exists="append", index=False)
-    except Exception as e:
-        print ('Raw', e)
-    try:
-        df[['tweetID', 'date', 'message', 'retweet', 'longitude', 'latitude']].to_sql("Tweets", conn, if_exists="append", index=False)
-    except Exception as e:
-        print ('tweets', e)
-    try:
-        df[['username', 'tweetID']].to_sql("Users", conn, if_exists="append", index=False)
-    except Exception as e:
-        print ('users', e)
-    try:
-        df[['date', 'tweetID']].to_sql("Dates", conn, if_exists="append", index=False)
-    except Exception as e:
-        print ('dates', e)
+
 
 
 ## Directories
@@ -118,6 +101,7 @@ data_dir = root_dir + 'data/'
 external_data_dir = data_dir + 'external/'
 external_scrape_dir = external_data_dir + 'scrape/'
 external_maps_dir = external_data_dir + 'maps/'
+external_cag_dir = external_data_dir + 'caglar/'
 
 processed_data_dir = data_dir + 'processed/'
 processed_classifier_dir = processed_data_dir + 'class/'
@@ -133,6 +117,26 @@ hate_speech_f = external_data_dir + 'hatebase/hatebase.csv'
 counties_f = name_file_path('attributes.json', external_maps_dir)
 states_f = name_file_path('state.geo.json', external_maps_dir)
 world_f = name_file_path('110m.json', external_maps_dir)
-
 # DB
 tweet_db_f = name_file_path('raw-tweets.db', processed_scrape_dir)
+# tweet counties
+top_retweets = [
+    'top10000_mostretweeted_alltimes.csv',
+    'top10000_mostretweeted_dayafter.csv',
+    'top10000_mostretweeted_daybefore.csv',
+    'top10000_mostretweeted_monthafter.csv',
+    'top10000_mostretweeted_monthbefore.csv',
+    'top10000_mostretweeted_weekafter.csv',
+    'top10000_mostretweeted_weekbefore.csv'
+    ]
+top_retweets = [name_file_path(x, external_cag_dir) for x in top_retweets]
+top_mentions = [
+    'top10000_mostmentioned_alltimes.csv',
+    'top10000_mostmentioned_dayafter.csv',
+    'top10000_mostmentioned_daybefore.csv',
+    'top10000_mostmentioned_monthafter.csv',
+    'top10000_mostmentioned_monthbefore.csv',
+    'top10000_mostmentioned_weekafter.csv',
+    'top10000_mostmentioned_weekbefore.csv'
+ ]
+top_mentions = [name_file_path(x, external_cag_dir) for x in top_mentions]
