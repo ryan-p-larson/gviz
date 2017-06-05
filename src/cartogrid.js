@@ -32,22 +32,37 @@ var reUsableChart = function(_myData) {
     "HI":[0,7],"TX":[3,7],"FL":[8,7]
   };
   var g, g_states;
+  var tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden");
 
   // 1.1 All options that should be accessible to caller
   var margin_grid = {top: 10, right: 10, bottom: 10, left:10};
-  var width_grid = 800 - margin_grid.left - margin_grid.right;
-  var height_grid = 400 - margin_grid.top - margin_grid.bottom;
-  var padding_grid = 0.1;
+  var width_grid = 960 - margin_grid.left - margin_grid.right;
+  var height_grid = 600 - margin_grid.top - margin_grid.bottom;
+  var padding_grid = 0.2;
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
 
-  var margin_st = {top: 20, right: 10, bottom: 15, left:10};
+  var margin_st = {top: 15, right: 5, bottom: 15, left:10};
   var tile_width;
   var tile_height;
   var x_scale_st = d3.scaleBand();
   var y_scale_st = d3.scaleLinear();
-  var x_axis_st = d3.axisBottom().scale(x_scale_st).tickValues([-4, 0, 4]).tickSize(3).tickSizeInner(0);
-  var y_axis_st = d3.axisLeft().scale(y_scale_st).ticks(5).tickFormat(d3.format(".0s")).tickSize(3).tickSizeInner(0);
+  var x_axis_st = d3.axisBottom()
+      .scale(x_scale_st)
+      .tickValues([-4, 0, 4])
+      .tickSize(1.5)
+      .tickSizeInner(0);
+  var y_axis_st = d3.axisLeft()
+      .scale(y_scale_st)
+      .ticks(3)
+      .tickFormat(d3.format(".0%"))
+      .tickSize(-1.5)
+      .tickSizeInner(0);
   var xValue = function(d) { return d.week; };
   var yValue = function(d) { return d.rate; };
 
@@ -59,6 +74,7 @@ var reUsableChart = function(_myData) {
 
   var data = [];
   var states = [];
+  var state_lookup;
   var debugOn = false;
 
   // 1.2 all updatable functions to be called by getter-setter methods
@@ -210,6 +226,12 @@ var reUsableChart = function(_myData) {
         .sortValues(function(a, b) { return a.week < b.week; })
         .entries(data);
 
+      state_lookup = d3.nest()
+        .key(function(d) { return d.st; })
+        .key(function(d) { return d.week; })
+        .sortValues(function(a, b) { return a.week < b.week; })
+        .object(data);
+
       // Charting
       var dom = d3.select(this);
       var svg = dom.append('svg')
@@ -223,8 +245,6 @@ var reUsableChart = function(_myData) {
         .data(states)
           .enter().append('g')
         .attr('id', function(d) { return 'st-' + d.key; })
-        .attr('height', tile_height)
-        .attr('width', tile_width)
         .attr('transform', function(d) { return get_state_tile_pos(d.key); });
 
       g_states.append('rect') //background rects
@@ -236,7 +256,7 @@ var reUsableChart = function(_myData) {
         .attr('class', 'st-title')
         //.attr('dx', .5 * tile_width)
         //.attr('dy', tile_height+ margin_st.bottom)
-        .attr('dx', tile_width - margin_st.left)
+        .attr('dx', tile_width - margin_st.right)
         .attr('dy', margin_st.bottom)
         .text(function(d) { return d.key; });
 
@@ -249,32 +269,75 @@ var reUsableChart = function(_myData) {
         .attr('y', function(d) { return y_scale_st(yValue(d)); })
         .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); })
         .style('fill', function(d) { return color(d.week); });
+        //.on('mouseover', highlight_bar);
 
       // Axes
-      /*
-       g_states.append('g')
+      var to_add_y = d3.set(["WI", "WA", "OR", "CA", "AZ", "OK", "TX",
+              "NY", "VT", "ME"]);
+      g_states.filter(function(d) { return to_add_y.has(d.key)})
+          .append('g')
+        .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
+        .attr('class', 'axis')
+        .call(y_axis_st)
+         .select(".tick:last-of-type text")
+         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
+         .attr("x", 5)
+         .attr("text-anchor", "start")
+         .attr("font-weight", "bold")
+         .text("");
+
+      var to_add_x = d3.set(["CA", "AZ", "NM", "TX", "LA", "MS", "AL", "GA", "FL",
+          "DC", "RI", "DE", "NH"]);
+       g_states.filter(function(d) { return to_add_x.has(d.key)})
+           .append('g')
+          .attr('class', 'axis')
          .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-         .attr('class', 'axis')
          .call(x_axis_st)
           .select(".tick:last-of-type text")
           .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
           .attr("y", 10)
           .attr("dy", null)
-          .text('Wk');
-       g_states.append('g')
-         .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-         .attr('class', 'axis')
-         .call(y_axis_st)
-          .select(".tick:last-of-type text")
-          .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
-          .attr("x", 5)
-          .attr("text-anchor", "start")
-          .attr("font-weight", "bold")
-          .text("");
-        */
+          .text('');
 
     });
   }
+  function highlight_bar(bar) {
+      var week = bar.week,
+          wk_selector = '.bar.wk-' + week;
+
+      var states_sel = tiles.map(function(d) { return d[2]; });
+      states_sel.forEach(function(d) {
+        if (state_lookup.hasOwnProperty(d)
+            && state_lookup[d].hasOwnProperty(week)) {
+
+          var st_week = state_lookup[d][week][0],
+              val = yValue(st_week);
+          g.select('#st-' + d).append('text')
+            //.attr('dx', function(d) { return x_scale_st(week); })
+            //.attr('dy', function(d) { return y_scale_st(val); })
+            .text(function(d) { return val; })
+
+        }
+
+        /*st.append('text')
+          .attr('dx', function(d) { return x_scale_st(week); })
+          .attr('dy', function(d) { return y_scale_st(); })
+          .text(function(d) { return yValue(d); });*/
+        //console.log(st.select(wk_selector));*/
+      });
+
+      /*
+      console.log(states);
+      d3.selectAll(states)
+        .data(function(d) { console.log(d); return d; })
+        .append('text')
+        .attr('class', 'barHighlightText')
+        .attr('dy', function(d) { return y_scale_st(yValue(d))})
+        .text(function(d) { return yValue(d); });
+        */
+  }
+
+
 
   ////////////////////////////////////////////////////
   // 5.0 Processing data begins here                //
