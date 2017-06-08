@@ -43,7 +43,7 @@ var reUsableChart = function(_myData) {
   var margin_grid = {top: 10, right: 10, bottom: 40, left:20};
   var width_grid = 960 - margin_grid.left - margin_grid.right;
   var height_grid = 600 - margin_grid.top - margin_grid.bottom;
-  var padding_grid = 0.12;
+  var padding_grid = 0.1;
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
 
@@ -191,6 +191,30 @@ var reUsableChart = function(_myData) {
   ////////////////////////////////////
   // 3.0 add private functions here //
   ////////////////////////////////////
+  function wrap(text, width) {
+    text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        //y = text.attr("y"),
+        y = y_scale_grid(4),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + 0 + "rem").text(word);
+      }
+    }
+    });
+  }
   function get_state_tile_pos(st) {
     var pos = state_mapping[st];
     var x = x_scale_grid(pos[0]),
@@ -207,33 +231,101 @@ var reUsableChart = function(_myData) {
     return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
   }
   function add_legend(sel_st) {
+    var scale_factor = 1.5;
+    var width_legend = 2 * tile_width + x_scale_st.padding();
+    var height_legend = scale_factor * tile_height;
+
     var copy = clone(sel_st)
         .attr('id', 'legend')
-        .attr("transform", 'translate(' + (x_scale_grid(0)) + ',' +
-          (y_scale_grid(7)) + ')scale(1.25)');
-        //.attr('dx', -tile_width)
-        //.attr('transform', 'scale(1.5, 0)');
-    //copy.attr("transform", 'translate(0, ' + -50 + ')');
+        .attr("transform", 'translate(' +
+          (x_scale_grid(0)) + ',' +
+          (y_scale_grid(7) - 25) + ')');
+
+    // Move st abbreviation
+    var leg_abbrv = d3.select('#legend').select('.st-title');
+    leg_abbrv.attr('dx', width_legend - margin_st.right)
+      .attr('dy', margin_st.top)
+
+
+    // resize that ish
+    x_scale_st.range([0, width_legend]).padding(0.45);
+    y_scale_st.range([height_legend, 0]);
+
+    var ca = states.filter(function(d) { return d.key === 'CA'; })[0].values;
+    var bars = d3.select('#legend').selectAll('rect.bar').data(ca);
+    bars.attr('x', function(d) { return x_scale_st(xValue(d)); })
+      .attr('width', x_scale_st.bandwidth())
+      .attr('y', function(d) { return y_scale_st(yValue(d)); })
+      .attr('height', function(d) { return height_legend - y_scale_st(yValue(d)); })
+
 
     // Add full X axis
     var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
-    x_scale_st.padding(0.45);
-    copy.select('.x.axis').call(x_axis_st.tickValues(x_ticks))
+    copy.append('g')
+      .attr('class', 'x axis')
+      .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
+      .call(x_axis_st.tickValues(x_ticks))
       .select(function() { return this.parentNode; })
-      .append('text')
-      .attr('class', 'axisLegendLabel')
-      .attr("y", tile_height + 22)
-      .text("Week from travel ban");
+        .append('text')
+        .attr('class', 'axisLegendLabel')
+        .attr('x', -margin_st.left)
+        .attr("y", tile_height + 22)
+        .text("Week from travel ban");
+    // Y axis
+    copy.append('g')
+      .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
+      .attr('class', 'y axis')
+      .call(y_axis_st.tickFormat(d3.format(".0%")))
+        .select("g:nth-child(2)")
+        .remove();
 
-    // Fix Y axis ticks
-    copy.select('.y.axis').call(y_axis_st.tickFormat(d3.format(".0%")));
-
-    // Add title
+    /* Add title
     copy.append('text')
       .attr('id', 'legendTitle')
       .attr('dy', -margin_st.top)
-      .text('How to read this chart:');
+      .text('How to read this chart:')*/
+    //d3.select('#legendTitle').call(wrap, tile_width);
+
+    // update background rect
+    d3.select('#legend').select('.background')
+      .attr('width', width_legend)
+      .attr('height', height_legend);
   }
+
+  function add_annotations() {
+
+    var annotations = [
+      {"x":8.37837837837833,
+      "y":346.2962962962963,
+      "dx":59,
+      "dy":36,
+      "data":{},
+      "disable": ['connector', 'subject'],
+      "note":{
+        "title":"How to read this chart:",
+        "wrap":75.40540540540542
+      }},
+      {"x":120, "y":503,
+      "dx":65,"dy":-11,
+      "note":{"title":"Abbreviation"},
+      "data":{}}
+    ];
+
+    window.anot = d3.annotation()
+      .editMode(true)
+      .type(d3.annotationLabel)
+      .accessors({
+        x: function(d){ return x_scale_grid(d.x); },
+        y: function(d){ return y_scale_grid(d.y); }
+      })
+      .annotations(annotations);
+
+    d3.select('svg').append('g')
+      .attr('class', 'annotation-group')
+      .attr('text-align', 'start')
+      .call(window.anot);
+  }
+
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
@@ -305,23 +397,6 @@ var reUsableChart = function(_myData) {
         .style('fill', function(d) { return color(d.week); })
         .on('mouseover', function(d) { console.log(d); });
 
-      // Axes
-      var to_add_y = d3.set(["WI", "WA", "OR", "CA", "AZ", "OK", "TX", "NY", "VT", "ME"]);
-      g_states.filter(function(d) { return to_add_y.has(d.key)})
-          .append('g')
-        .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-        .attr('class', 'y axis')
-        .call(y_axis_st)
-          .select("g:nth-child(2)")
-          .remove();
-      var to_add_x = d3.set(["CA", "AZ", "NM", "TX", "LA", "MS", "AL", "GA", "FL",
-          "DC", "RI", "DE", "NH"]);
-       g_states.filter(function(d) { return to_add_x.has(d.key)})
-           .append('g')
-          .attr('class', 'x axis')
-         .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-         .call(x_axis_st);
-
       // State text abbreviations
       g_states.append('text')
         .attr('class', 'st-title')
@@ -335,9 +410,18 @@ var reUsableChart = function(_myData) {
         .attr('height', tile_height)
         .attr('class', 'state background');
 
-      // ADD LEGEND
+      // Add LEGEND
       add_legend('#st-CA');
 
+      // Add Chart title
+      g.append('text')
+        .attr('class', 'chartTitle')
+        .attr('y', y_scale_grid(1) - margin_st.bottom)
+        //.attr('dy', tile_height - margin_st.bottom)
+        .text('Immigration Tweets Normalized by State Population')
+
+      // Add annotations
+      add_annotations();
     });
   }
   function highlight_bar(bar) {
@@ -386,20 +470,30 @@ var reUsableChart = function(_myData) {
   // XHR to load data
   function readData(csvFile, selection) {
 
+    var week_to_date = {
+      '-4.0': '2016-12-30',
+      '-3.0': '2017-01-06',
+      '-2.0': '2017-01-13',
+      '-1.0': '2017-01-20',
+      '1.0': '2017-02-04',
+      '2.0': '2017-02-11',
+      '3.0': '2017-02-18',
+      '4.0': '2017-02-25'
+    };
+
     d3.csv(csvFile, function(error, f) {
       f = f.map(function(d) {
         d.cnt = +d.cnt;
         d.rate = +d.rate;
+        d.date = week_to_date[d.week];
         d.week = +d.week;
+
         return d;
       });
       var filt5 = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
       var filt0 = filt5.filter(function(d) { return d.week != 0; });
       createChart(selection, filt0);
     });
-
-
   }
-
   return chartAPI;
 };
