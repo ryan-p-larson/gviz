@@ -40,7 +40,7 @@ var reUsableChart = function(_myData) {
       .style("visibility", "hidden");
 
   // 1.1 All options that should be accessible to caller
-  var margin_grid = {top: 10, right: 10, bottom: 10, left:10};
+  var margin_grid = {top: 10, right: 10, bottom: 40, left:20};
   var width_grid = 960 - margin_grid.left - margin_grid.right;
   var height_grid = 600 - margin_grid.top - margin_grid.bottom;
   var padding_grid = 0.12;
@@ -209,26 +209,30 @@ var reUsableChart = function(_myData) {
   function add_legend(sel_st) {
     var copy = clone(sel_st)
         .attr('id', 'legend')
-        .attr("transform", 'translate(' + (x_scale_grid(0) + 25) + ',' +
-          (y_scale_grid(7) - 25) + ') scale(1.25)');
+        .attr("transform", 'translate(' + (x_scale_grid(0)) + ',' +
+          (y_scale_grid(7)) + ')scale(1.25)');
         //.attr('dx', -tile_width)
         //.attr('transform', 'scale(1.5, 0)');
     //copy.attr("transform", 'translate(0, ' + -50 + ')');
 
-    // Add full
+    // Add full X axis
     var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
+    x_scale_st.padding(0.45);
     copy.select('.x.axis').call(x_axis_st.tickValues(x_ticks))
       .select(function() { return this.parentNode; })
       .append('text')
       .attr('class', 'axisLegendLabel')
-      .attr("y", tile_height + margin_st.bottom)
-      .attr("dx", tile_width/2)
-      .attr("font-weight", "bold")
-      .text("Week before/after travel ban");
+      .attr("y", tile_height + 22)
+      .text("Week from travel ban");
 
-
+    // Fix Y axis ticks
     copy.select('.y.axis').call(y_axis_st.tickFormat(d3.format(".0%")));
 
+    // Add title
+    copy.append('text')
+      .attr('id', 'legendTitle')
+      .attr('dy', -margin_st.top)
+      .text('How to read this chart:');
   }
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
