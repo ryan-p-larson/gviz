@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8">
-	<title>Chart Carto</title>
+	<title>Line Charts</title>
 
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -35,6 +35,33 @@
 		stroke-width: 1.5px;
 		stroke-opacity: 0.5;
 	}
+	.label {
+		font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+		font-weight: 700;
+		background-color: #fff;
+	}
+	.axis path, .axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+	.axis--x path {
+	  display: none;
+	}
+
+	.overlay {
+	  fill: none;
+	  pointer-events: all;
+	}
+
+	.focus circle {
+	  fill: none;
+	  stroke: #333;
+		stroke-width: 1.5px;
+	}
+	#dateLabel {
+
+	}
 	</style>
 </head>
 
@@ -46,32 +73,34 @@
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<div class="row">
-					<div class="col-xs-12"><h1>Charts Cartogram</h1></div>
+					<div class="col-xs-12"><h1>Line Charts</h1></div>
 				</div>
 			</div>
 
 			<div class="panel-body">
 				<div class="row">
-
-				</div>
-
-				<hr>
-
-				<div class="row">
-					<div class="col-xs-12" id='width-setter'></div>
+					<div class="col-xs-12" id='immigrantChart'>
+						<h3>Immigrant vs. Immigration</h3>
+					</div>
+					<hr>
+					<div class="col-xs-12" id='hashtagChart'>
+						<h3>Most Popular Hashtags</h3>
+					</div>
 				</div>
 
 			</div>
 	</div>
 </div>
 <script src="src/hashtags.js"></script>
+<script src="src/immigration.js"></script>
 <script>
 
-var line_chart = reUsableChart('data/processed/web/hashtag-counts-date-filtered.csv');
-d3.select('#width-setter')
-	.call(line_chart);
+var line_hash = reUsableChart('data/processed/web/hashtag-counts-date-filtered.csv');
+d3.select('#hashtagChart')
+	.call(line_hash);
 
-
+var line_immig = reuseableLine('data/processed/web/term-date-counts.csv');
+d3.select('#immigrantChart').call(line_immig);
 
 </script>
 </body>

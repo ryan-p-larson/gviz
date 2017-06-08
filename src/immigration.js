@@ -1,4 +1,4 @@
-var reUsableChart = function(_myData) {
+var reuseableLine = function(_myData) {
   "use strict";
   var file; // reference to data (embedded or in file)
 
@@ -6,21 +6,27 @@ var reUsableChart = function(_myData) {
   // 1.0 add visualization specific variables here //
   ///////////////////////////////////////////////////
   var g;
+  var keys = ['immigrant', 'immigration', 'total'];
+  var focus;
 
   // 1.1 All options that should be accessible to caller
-  var margin = {top: 20, right: 80, bottom: 30, left: 50};
+  var margin = {top: 20, right: 20, bottom: 20, left: 40};
   var width = 960 - margin.left - margin.right;
   var height = 600 - margin.top - margin.bottom;
+  var format_ticks = d3.format(".2s");
   var data = [];
   var debugOn = false;
-
 
   var x_value = function(d) { return d.date; };
   var x_scale = d3.scaleTime().range([0, width]);
   var x_axis = d3.axisBottom(x_scale);
-  var y_value = function(d) { return d.count; };
+  var x = function(d) { return x_scale(x_value(d)); };
+  var y_value = function(d) { return d.total; };
   var y_scale = d3.scaleLinear().range([height, 0]);
-  var y_axis = d3.axisLeft(y_scale);
+  var y_axis = d3.axisLeft(y_scale).tickFormat(format_ticks);
+  var y = function(d) { return y_scale(y_value(d)); };
+
+  var color = d3.scaleOrdinal(d3.schemeCategory10);
 
   var parse_date = d3.timeParse('%Y-%m-%d');
   var line = d3.line()
@@ -28,7 +34,13 @@ var reUsableChart = function(_myData) {
       .curve(d3.curveMonotoneX)
       .x(function(d) { return x_scale(x_value(d)); })
       .y(function(d) { return y_scale(y_value(d)); });
-
+  var area = d3.area()
+      .x(function(d) { return x_scale(d.data.date); })
+      .y0(function(d) { return y_scale(d[0]); })
+      .y1(function(d) { return y_scale(d[1]); })
+      .curve(d3.curveMonotoneX);
+  var stack = d3.stack();
+  var t = d3.transition().duration(50).ease(d3.easePoly);
 
   ////////////////////////////////////////////////////
   // 2.0 API for external access                    //
@@ -67,28 +79,46 @@ var reUsableChart = function(_myData) {
   ////////////////////////////////////
   // 3.0 add private functions here //
   ////////////////////////////////////
-  function get_highest_day(days) {
+  function get_highest_day(attr) {
     var highest_so_far = 0;
     var highest_day;
 
-    days.forEach(function(d) {
-      var val = y_value(d);
+    data.forEach(function(d) {
+      var val = d[attr];
       if (val > highest_so_far) {
         highest_so_far = val;
         highest_day = d;
       }
     });
-    return highest_day;
+    return highest_so_far;
   }
 
+  var bisectDate = d3.bisector(x_value).left;
+  function mousemove() {
+    var x0 = x_scale.invert(d3.mouse(this)[0]),
+        i = bisectDate(data, x0, 1),
+        d0 = data[i - 1],
+        d1 = data[i],
+        d = x0 - d0.date > d1.date - x0 ? d1 : d0;
 
+    g.select('#dateLabel').text("");
+    g.select('#dateLabel').interrupt().transition(t)
+      .attr('x', x_scale(x0))
+      .text(d.date.toDateString());
 
+    focus.interrupt().transition(t)
+      .attr("transform", function(e) {
+        return "translate(" + x_scale(x0) + "," + y_scale(d[e]) + ")";
+      });
+    focus.select('text').text(function(e) { return e +': '+ format_ticks(d[e]); });
+
+  }
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
 
   function createChart(selection, _file) {
-    var data = _file;
+    data = _file;
 	  if (debugOn) { console.log(data);}
     selection.each(function () {
       // 4.1 insert code here
@@ -100,36 +130,20 @@ var reUsableChart = function(_myData) {
         .attr('class', 'lineChart')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
       x_scale.domain(d3.extent(data, x_value));
       y_scale.domain([0, d3.max(data, y_value)]);
+      color.domain(keys);
+      stack.keys(keys);
 
-      var tags = d3.nest()
-        .key(function(d) { return d.tag; })
-        .sortValues(function(a, b) { return a.date - b.date; })
-        .entries(data);
-      tags = tags.slice(0, 15);
+      var layer = g.selectAll('.layer')
+          .data(stack(data).reverse())
+            .enter().append('g')
+          .attr('class', 'layer');
 
-      var tag_g = g.selectAll('.hashtag')
-        .data(tags)
-        .enter().append('g')
-        .attr('class', 'hashtag')
-        .attr('id', function(d) { return 'tag-' + d.key; });
-      tag_g.append('path')
-        .attr('class', 'line')
-        .attr('d', function(d) { return line(d.values); });
-      tag_g.append('text')
-        .attr('x', function(d) {
-          //var last = d.values[d.values.length-1];
-          var best = get_highest_day(d.values);
-          return x_scale(x_value(best));
-        })
-        .attr('y', function(d) {
-          //var last = d.values[d.values.length-1];
-          var best = get_highest_day(d.values);
-          return y_scale(y_value(best));
-        })
-        .text(function(d) { return d.key; });
+      layer.append('path')
+        .attr('class', 'area')
+        .style('fill', function(d) { return color(d.key); })
+        .attr('d', area);
 
       // Axes
       g.append("g")
@@ -145,6 +159,47 @@ var reUsableChart = function(_myData) {
           .attr("dy", "0.71em")
           .attr("fill", "#000")
           .text("Count per Day");
+
+
+      /////
+      // Mouseover
+      focus = g.selectAll('.focus')
+        .data(keys)
+          .enter().append('g')
+        .attr('class', 'focus')
+        .attr('id', function(d) { return 'focus-' + d; })
+        .style('display', 'none');
+
+      focus.append('circle').attr('r', 4.5);
+      focus.append("text")
+        .attr('x', 10).attr('dy', ".35em")
+        .attr('class', 'label')
+        .text(function(d) { return d; });
+      g.append('text')
+        .attr('id', 'dateLabel')
+        .attr('class', 'label')
+        .attr('x', 0);
+
+      g.append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", function() { focus.style("display", null); })
+        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mousemove", mousemove);
+
+      ////////////////
+      // legend
+      var legend = d3.legendColor()
+          .orient('vertical')
+          .title('Keyword')
+          .labels(["'immigrant'", "'immigration'", "total"])
+          .shapeWidth(30)
+          .shapeHeight(15)
+          .scale(color);
+      g.append('g').attr('class', 'legend')
+        .attr('transform', 'translate(' + (width - margin.right*4) +','+ margin.top +')');
+      g.select('.legend').call(legend);
     });
   }
 
@@ -164,7 +219,10 @@ var reUsableChart = function(_myData) {
 
   // helper for XHR
   function convertToNumber(d) {
-    d.count = +d.count;
+    d.total = +d.total;
+    d.immigration = +d.immigration;
+    d.immigrant = +d.immigrant;
+
     d.week = +d.week;
     d.date = parse_date(d.date);
     return d;
