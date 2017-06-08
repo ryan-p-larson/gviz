@@ -47,7 +47,7 @@ var reUsableChart = function(_myData) {
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
 
-  var margin_st = {top: 15, right: 5, bottom: 15, left:10};
+  var margin_st = {top: 12, right: 5, bottom: 15, left:10};
   var tile_width;
   var tile_height;
   var axis_format = d3.format(".2f");//".0%"
@@ -55,17 +55,17 @@ var reUsableChart = function(_myData) {
       .paddingOuter(0.3)
       .paddingInner(0.2);
       //.padding();
-  var y_scale_st = d3.scalePow().exponent(0.5);//.range([tile_height, 0]);
+  var y_scale_st = d3.scalePow().exponent(0.5);
   var x_axis_st = d3.axisBottom()
       .scale(x_scale_st)
-      .tickValues([-4, 0, 4])
+      .tickValues([-2, 2])
       .tickSize(1.5)
       .tickSizeInner(0);
   var y_axis_st = d3.axisLeft()
       .scale(y_scale_st)
-      .ticks(4)
+      .tickValues([0.00, 0.05, 0.15, 0.25])
       .tickFormat(format_tick)
-      .tickPadding(1.5)
+      .tickPadding(1)
       .tickSizeOuter(0)
       .tickSizeInner(2);
   var xValue = function(d) { return d.week; };
@@ -202,6 +202,34 @@ var reUsableChart = function(_myData) {
     return percent.slice(1);
   }
 
+  function clone(sel_node) {
+    var node = d3.select(sel_node).node();
+    return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
+  }
+  function add_legend(sel_st) {
+    var copy = clone(sel_st)
+        .attr('id', 'legend')
+        .attr("transform", 'translate(' + (x_scale_grid(0) + 25) + ',' +
+          (y_scale_grid(7) - 25) + ') scale(1.25)');
+        //.attr('dx', -tile_width)
+        //.attr('transform', 'scale(1.5, 0)');
+    //copy.attr("transform", 'translate(0, ' + -50 + ')');
+
+    // Add full
+    var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
+    copy.select('.x.axis').call(x_axis_st.tickValues(x_ticks))
+      .select(function() { return this.parentNode; })
+      .append('text')
+      .attr('class', 'axisLegendLabel')
+      .attr("y", tile_height + margin_st.bottom)
+      .attr("dx", tile_width/2)
+      .attr("font-weight", "bold")
+      .text("Week before/after travel ban");
+
+
+    copy.select('.y.axis').call(y_axis_st.tickFormat(d3.format(".0%")));
+
+  }
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
@@ -228,17 +256,17 @@ var reUsableChart = function(_myData) {
 
       // Overall state stuff here
       x_scale_st
-        .domain([-4, -3, -2, -1, 0, 1, 2, 3, 4])
+        .domain([-4, -3, -2, -1, 1, 2, 3, 4])
         .range([0, tile_width]);
       y_scale_st
-//      .domain([0, d3.max(data, function(d) { return yValue(d); })])//.nice()
+        // .domain([0, d3.max(data, function(d) { return yValue(d); })])//.nice()
         .domain([0, 0.32])
         .range([tile_height, 0]);
+
       states = d3.nest()
         .key(function(d) { return d.st; })
         .sortValues(function(a, b) { return a.week < b.week; })
         .entries(data);
-
       state_lookup = d3.nest()
         .key(function(d) { return d.st; })
         .key(function(d) { return d.week; })
@@ -254,13 +282,14 @@ var reUsableChart = function(_myData) {
         .attr('class', 'cartoChart')
         .attr("transform", "translate(" + margin_grid.left + "," + margin_grid.top + ")");
 
+      // States groups
       g_states = g.append('g').attr('class', 'states').selectAll('g')
         .data(states)
           .enter().append('g')
         .attr('id', function(d) { return 'st-' + d.key; })
         .attr('transform', function(d) { return get_state_tile_pos(d.key); });
 
-
+      // States bars
       g_states.selectAll('rect')
         .data(function(d) { return d.values; })
           .enter().append('rect')
@@ -273,42 +302,38 @@ var reUsableChart = function(_myData) {
         .on('mouseover', function(d) { console.log(d); });
 
       // Axes
-      var to_add_y = d3.set(["WI", "WA", "OR", "CA", "AZ", "OK", "TX",
-              "NY", "VT", "ME"]);
+      var to_add_y = d3.set(["WI", "WA", "OR", "CA", "AZ", "OK", "TX", "NY", "VT", "ME"]);
       g_states.filter(function(d) { return to_add_y.has(d.key)})
           .append('g')
         .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-        .attr('class', 'axis')
-        .call(y_axis_st.tickSize(-tile_width))
+        .attr('class', 'y axis')
+        .call(y_axis_st)
           .select("g:nth-child(2)")
           .remove();
-
-
       var to_add_x = d3.set(["CA", "AZ", "NM", "TX", "LA", "MS", "AL", "GA", "FL",
           "DC", "RI", "DE", "NH"]);
        g_states.filter(function(d) { return to_add_x.has(d.key)})
            .append('g')
-          .attr('class', 'axis')
+          .attr('class', 'x axis')
          .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-         .call(x_axis_st)
-          .select(".tick:last-of-type text")
-          .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
-          .attr("y", 10)
-          .attr("dy", null)
-          .text('');
+         .call(x_axis_st);
 
+      // State text abbreviations
       g_states.append('text')
         .attr('class', 'st-title')
-        //.attr('dx', .5 * tile_width)
-        //.attr('dy', tile_height+ margin_st.bottom)
         .attr('dx', tile_width - margin_st.right)
-        .attr('dy', margin_st.bottom)
+        .attr('dy', margin_st.top)
         .text(function(d) { return d.key; });
 
-      g_states.append('rect') //background rects
+      // Outline rectangles
+      g_states.append('rect')
         .attr('width', tile_width)
         .attr('height', tile_height)
         .attr('class', 'state background');
+
+      // ADD LEGEND
+      add_legend('#st-CA');
+
     });
   }
   function highlight_bar(bar) {
@@ -364,8 +389,9 @@ var reUsableChart = function(_myData) {
         d.week = +d.week;
         return d;
       });
-      var filt = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
-      createChart(selection, filt);
+      var filt5 = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
+      var filt0 = filt5.filter(function(d) { return d.week != 0; });
+      createChart(selection, filt0);
     });
 
 
