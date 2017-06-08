@@ -43,15 +43,19 @@ var reUsableChart = function(_myData) {
   var margin_grid = {top: 10, right: 10, bottom: 10, left:10};
   var width_grid = 960 - margin_grid.left - margin_grid.right;
   var height_grid = 600 - margin_grid.top - margin_grid.bottom;
-  var padding_grid = 0.2;
+  var padding_grid = 0.12;
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
 
   var margin_st = {top: 15, right: 5, bottom: 15, left:10};
   var tile_width;
   var tile_height;
-  var x_scale_st = d3.scaleBand();
-  var y_scale_st = d3.scaleLinear();
+  var axis_format = d3.format(".2f");//".0%"
+  var x_scale_st = d3.scaleBand()
+      .paddingOuter(0.3)
+      .paddingInner(0.2);
+      //.padding();
+  var y_scale_st = d3.scalePow().exponent(0.5);//.range([tile_height, 0]);
   var x_axis_st = d3.axisBottom()
       .scale(x_scale_st)
       .tickValues([-4, 0, 4])
@@ -59,17 +63,16 @@ var reUsableChart = function(_myData) {
       .tickSizeInner(0);
   var y_axis_st = d3.axisLeft()
       .scale(y_scale_st)
-      .ticks(3)
-      .tickFormat(d3.format(".0%"))
-      .tickSize(-1.5)
-      .tickSizeInner(0);
+      .ticks(4)
+      .tickFormat(format_tick)
+      .tickPadding(1.5)
+      .tickSizeOuter(0)
+      .tickSizeInner(2);
   var xValue = function(d) { return d.week; };
   var yValue = function(d) { return d.rate; };
 
-  var barPadding = 1;
-  var fillColor = 'coral';
   var color = d3.scaleThreshold()
-      .domain([-1, 0, 1])
+      .domain([0, 1])
       .range(['#2166ac', '#dddddd', '#b2182b']);
 
   var data = [];
@@ -144,6 +147,13 @@ var reUsableChart = function(_myData) {
     return chartAPI;
   }
 
+  chartAPI.axis_format = function(_) {
+    if (!arguments.length) return axis_format;
+    axis_format = _;
+    y_scale_st = y_scale_st.tickFormat(axis_format);
+    return chartAPI;
+  }
+
   chartAPI.y_scale_st = function(_) {
     if (!arguments.length) return y_scale_st;
     y_scale_st = _;
@@ -187,7 +197,10 @@ var reUsableChart = function(_myData) {
         y = y_scale_grid(pos[1]);
     return 'translate(' + x + ',' + y + ')';
   }
-
+  function format_tick(tick) {
+    var percent = axis_format(tick);
+    return percent.slice(1);
+  }
 
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
@@ -216,10 +229,10 @@ var reUsableChart = function(_myData) {
       // Overall state stuff here
       x_scale_st
         .domain([-4, -3, -2, -1, 0, 1, 2, 3, 4])
-        .range([0, tile_width])
-        .padding(padding_grid);
+        .range([0, tile_width]);
       y_scale_st
-        .domain([0, d3.max(data, function(d) { return yValue(d); })])
+//      .domain([0, d3.max(data, function(d) { return yValue(d); })])//.nice()
+        .domain([0, 0.32])
         .range([tile_height, 0]);
       states = d3.nest()
         .key(function(d) { return d.st; })
@@ -247,18 +260,6 @@ var reUsableChart = function(_myData) {
         .attr('id', function(d) { return 'st-' + d.key; })
         .attr('transform', function(d) { return get_state_tile_pos(d.key); });
 
-      g_states.append('rect') //background rects
-        .attr('width', tile_width)
-        .attr('height', tile_height)
-        .attr('class', 'state background');
-
-      g_states.append('text')
-        .attr('class', 'st-title')
-        //.attr('dx', .5 * tile_width)
-        //.attr('dy', tile_height+ margin_st.bottom)
-        .attr('dx', tile_width - margin_st.right)
-        .attr('dy', margin_st.bottom)
-        .text(function(d) { return d.key; });
 
       g_states.selectAll('rect')
         .data(function(d) { return d.values; })
@@ -268,8 +269,8 @@ var reUsableChart = function(_myData) {
         .attr('width', x_scale_st.bandwidth())
         .attr('y', function(d) { return y_scale_st(yValue(d)); })
         .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); })
-        .style('fill', function(d) { return color(d.week); });
-        //.on('mouseover', highlight_bar);
+        .style('fill', function(d) { return color(d.week); })
+        .on('mouseover', function(d) { console.log(d); });
 
       // Axes
       var to_add_y = d3.set(["WI", "WA", "OR", "CA", "AZ", "OK", "TX",
@@ -278,13 +279,10 @@ var reUsableChart = function(_myData) {
           .append('g')
         .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
         .attr('class', 'axis')
-        .call(y_axis_st)
-         .select(".tick:last-of-type text")
-         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
-         .attr("x", 5)
-         .attr("text-anchor", "start")
-         .attr("font-weight", "bold")
-         .text("");
+        .call(y_axis_st.tickSize(-tile_width))
+          .select("g:nth-child(2)")
+          .remove();
+
 
       var to_add_x = d3.set(["CA", "AZ", "NM", "TX", "LA", "MS", "AL", "GA", "FL",
           "DC", "RI", "DE", "NH"]);
@@ -299,6 +297,18 @@ var reUsableChart = function(_myData) {
           .attr("dy", null)
           .text('');
 
+      g_states.append('text')
+        .attr('class', 'st-title')
+        //.attr('dx', .5 * tile_width)
+        //.attr('dy', tile_height+ margin_st.bottom)
+        .attr('dx', tile_width - margin_st.right)
+        .attr('dy', margin_st.bottom)
+        .text(function(d) { return d.key; });
+
+      g_states.append('rect') //background rects
+        .attr('width', tile_width)
+        .attr('height', tile_height)
+        .attr('class', 'state background');
     });
   }
   function highlight_bar(bar) {
