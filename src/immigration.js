@@ -38,9 +38,9 @@ var reuseableLine = function(_myData) {
       .x(function(d) { return x_scale(d.data.date); })
       .y0(function(d) { return y_scale(d[0]); })
       .y1(function(d) { return y_scale(d[1]); })
-      .curve(d3.curveMonotoneX);
+      .curve(d3.curveCardinal);
   var stack = d3.stack();
-  var t = d3.transition().duration(50).ease(d3.easePoly);
+  var t = d3.transition().duration(25).ease(d3.easePoly);
 
   ////////////////////////////////////////////////////
   // 2.0 API for external access                    //
@@ -95,22 +95,29 @@ var reuseableLine = function(_myData) {
 
   var bisectDate = d3.bisector(x_value).left;
   function mousemove() {
-    var x0 = x_scale.invert(d3.mouse(this)[0]),
+    var mouse_x = d3.mouse(this)[0],
+        x0 = x_scale.invert(mouse_x),
         i = bisectDate(data, x0, 1),
         d0 = data[i - 1],
         d1 = data[i],
         d = x0 - d0.date > d1.date - x0 ? d1 : d0;
 
-    g.select('#dateLabel').text("");
-    g.select('#dateLabel').interrupt().transition(t)
+    focus.style("display", null);
+
+    focus.select('#dateLabel').text("");
+    focus.select('#dateLabel').interrupt().transition(t)
       .attr('x', x_scale(x0))
       .text(d.date.toDateString());
 
-    focus.interrupt().transition(t)
+    focus.selectAll('.label').interrupt().transition(t)
+      .attr("transform", function(e) {
+        return "translate(" + x_scale(x0) + "," + y_scale(d[e]) + ")";
+      })
+      .text(function(e) { return e +': '+ format_ticks(d[e]); });
+    focus.selectAll('circle').interrupt().transition(t)
       .attr("transform", function(e) {
         return "translate(" + x_scale(x0) + "," + y_scale(d[e]) + ")";
       });
-    focus.select('text').text(function(e) { return e +': '+ format_ticks(d[e]); });
 
   }
   ////////////////////////////////////////////////////
@@ -131,11 +138,11 @@ var reuseableLine = function(_myData) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       x_scale.domain(d3.extent(data, x_value));
-      y_scale.domain([0, d3.max(data, y_value)]);
+      y_scale.domain([0, d3.max(data, y_value) * 1.2]);
       color.domain(keys);
       stack.keys(keys);
 
-      var layer = g.selectAll('.layer')
+      var layer = g.append('g').attr('class', 'layers').selectAll('.layer')
           .data(stack(data).reverse())
             .enter().append('g')
           .attr('class', 'layer');
@@ -146,11 +153,12 @@ var reuseableLine = function(_myData) {
         .attr('d', area);
 
       // Axes
-      g.append("g")
+      var axes = g.append('g')
+      axes.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
         .call(x_axis);
-      g.append("g")
+      axes.append("g")
           .attr("class", "axis axis--y")
           .call(y_axis)
         .append("text")
@@ -159,34 +167,6 @@ var reuseableLine = function(_myData) {
           .attr("dy", "0.71em")
           .attr("fill", "#000")
           .text("Count per Day");
-
-
-      /////
-      // Mouseover
-      focus = g.selectAll('.focus')
-        .data(keys)
-          .enter().append('g')
-        .attr('class', 'focus')
-        .attr('id', function(d) { return 'focus-' + d; })
-        .style('display', 'none');
-
-      focus.append('circle').attr('r', 4.5);
-      focus.append("text")
-        .attr('x', 10).attr('dy', ".35em")
-        .attr('class', 'label')
-        .text(function(d) { return d; });
-      g.append('text')
-        .attr('id', 'dateLabel')
-        .attr('class', 'label')
-        .attr('x', 0);
-
-      g.append("rect")
-        .attr("class", "overlay")
-        .attr("width", width)
-        .attr("height", height)
-        .on("mouseover", function() { focus.style("display", null); })
-        .on("mouseout", function() { focus.style("display", "none"); })
-        .on("mousemove", mousemove);
 
       ////////////////
       // legend
@@ -200,6 +180,34 @@ var reuseableLine = function(_myData) {
       g.append('g').attr('class', 'legend')
         .attr('transform', 'translate(' + (width - margin.right*4) +','+ margin.top +')');
       g.select('.legend').call(legend);
+
+      /////
+      // Mouseover
+      focus = g.append('g').selectAll('.focus')
+        .data(keys)
+          .enter().append('g')
+        .attr('class', 'focus')
+        .attr('id', function(d) { return 'focus-' + d; })
+        .style('display', 'none');
+
+      focus.append('circle').attr('r', 4.5);
+      focus.append("text")
+        .attr('x', 10).attr('dy', ".35em")
+        .attr('class', 'label')
+        .text(function(d) { return d; });
+      focus.append('text')
+        .attr('id', 'dateLabel')
+        .attr('x', 0)
+        .attr('y', margin.top);
+
+      g.append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mousein", function() { focus.style("display", null); })
+        .on("mouseover", mousemove)
+        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mousemove", mousemove);
     });
   }
 
