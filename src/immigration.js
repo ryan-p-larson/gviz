@@ -6,7 +6,7 @@ var reuseableLine = function(_myData) {
   // 1.0 add visualization specific variables here //
   ///////////////////////////////////////////////////
   var g;
-  var keys = ['immigrant', 'immigration', 'total'];
+  var keys = ['immigrant', 'immigration'];//, 'total'];
   var focus;
 
   // 1.1 All options that should be accessible to caller
@@ -21,18 +21,18 @@ var reuseableLine = function(_myData) {
   var x_scale = d3.scaleTime().range([0, width]);
   var x_axis = d3.axisBottom(x_scale);
   var x = function(d) { return x_scale(x_value(d)); };
-  var y_value = function(d) { return d.total; };
+  var y_value = function(d) { return d.immigration; };
   var y_scale = d3.scaleLinear().range([height, 0]);
   var y_axis = d3.axisLeft(y_scale).tickFormat(format_ticks);
   var y = function(d) { return y_scale(y_value(d)); };
 
-  var color = d3.scaleOrdinal(d3.schemeCategory10);
+  var color = d3.scaleOrdinal(['#addd8e', '#238443']);
 
   var parse_date = d3.timeParse('%Y-%m-%d');
   var line = d3.line()
       //.curve(d3.curveBasis)
       .curve(d3.curveMonotoneX)
-      .x(function(d) { return x_scale(x_value(d)); })
+      .x(function(d) { return x_scale(d.data.date); })
       .y(function(d) { return y_scale(y_value(d)); });
   var area = d3.area()
       .x(function(d) { return x_scale(d.data.date); })
@@ -173,12 +173,12 @@ var reuseableLine = function(_myData) {
       var legend = d3.legendColor()
           .orient('vertical')
           .title('Keyword')
-          .labels(["'immigrant'", "'immigration'", "total"])
-          .shapeWidth(30)
-          .shapeHeight(15)
+          .labels(["immigrant", "immigration", "total"])
+          .shapeWidth(45)
+          .shapeHeight(30)
           .scale(color);
       g.append('g').attr('class', 'legend')
-        .attr('transform', 'translate(' + (width - margin.right*4) +','+ margin.top +')');
+        .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
       g.select('.legend').call(legend);
 
       /////
@@ -220,6 +220,8 @@ var reuseableLine = function(_myData) {
   function readData(csvFile, selection) {
       d3.csv(csvFile, convertToNumber, function(error, f) {
         //console.log(f);
+        //f = f.filter(function(d) { return d.})
+
         createChart(selection, f);
       });
     }

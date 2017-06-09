@@ -32,6 +32,9 @@ var reUsableChart = function(_myData) {
     "HI":[0,7],"TX":[3,7],"FL":[8,7]
   };
   var g, g_states;
+  var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
+  var date_ticks = ["Dec 30th", "Jan 6th, 2017", "Jan 13th",
+                  "Jan 20th", "Feb 4th", "Feb 11th", "Feb 18th", "Feb 25th"];
 
   // 1.1 All options that should be accessible to caller
   var margin_grid = {top: 10, right: 10, bottom: 20, left:20};
@@ -52,7 +55,6 @@ var reUsableChart = function(_myData) {
   var y_scale_st = d3.scalePow().exponent(0.5);
   var x_axis_st = d3.axisBottom()
       .scale(x_scale_st)
-      .tickValues([-2, 2])
       .tickSize(1.5)
       .tickSizeInner(0);
   var y_axis_st = d3.axisLeft()
@@ -62,12 +64,14 @@ var reUsableChart = function(_myData) {
       .tickPadding(1)
       .tickSizeOuter(0)
       .tickSizeInner(2);
-  var xValue = function(d) { return d.week; };
+  var xValue = function(d) { return d.date; };
   var yValue = function(d) { return d.rate; };
-
   var color = d3.scaleThreshold()
       .domain([0, 1])
       .range(['#2166ac', '#dddddd', '#b2182b']);
+
+  var width_factor = 1.7;
+  var height_factor = 1.5;
 
   var data = [];
   var states = [];
@@ -197,26 +201,25 @@ var reUsableChart = function(_myData) {
   ////////////////////////////////////
   function wrap(text, width) {
     text.each(function() {
-    var text = d3.select(this),
-        words = text.text().split(/\s+/).reverse(),
-        word,
-        line = [],
-        lineNumber = 0,
-        lineHeight = 1.1, // ems
-        //y = text.attr("y"),
-        y = y_scale_grid(4),
-        dy = parseFloat(text.attr("dy")),
-        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
-    while (word = words.pop()) {
-      line.push(word);
-      tspan.text(line.join(" "));
-      if (tspan.node().getComputedTextLength() > width) {
-        line.pop();
+      var text = d3.select(this),
+          words = text.text().split(/\s+/).reverse(),
+          word,
+          line = [],
+          lineNumber = 0,
+          lineHeight = 1.1, // ems
+          y = text.attr("y"),
+          dy = parseFloat(text.attr("dy")),
+          tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+      while (word = words.pop()) {
+        line.push(word);
         tspan.text(line.join(" "));
-        line = [word];
-        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + 0 + "rem").text(word);
+        if (tspan.node().getComputedTextLength() > width) {
+          line.pop();
+          tspan.text(line.join(" "));
+          line = [word];
+          tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+        }
       }
-    }
     });
   }
   function get_state_tile_pos(st) {
@@ -234,19 +237,20 @@ var reUsableChart = function(_myData) {
     return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
   }
 
-  var width_factor = 2.25, height_factor = 1.61;
   function add_legend(sel_st) {
-    var height_legend = height_factor * tile_height;
     var width_legend = (width_factor * tile_width) +
               (width_factor * x_scale_grid.padding() * x_scale_grid.bandwidth());
+    var height_legend = tile_height * height_factor;
 
     ////// math to calculate where the legend should go
-    var bottom = y_scale_grid(7) +  + tile_height;
+    var bottom = y_scale_grid(7) + tile_height * .66;
     var legend_y = bottom - height_legend;
+    var right = x_scale_grid(2) - x_scale_grid.paddingInner() *3;
+    var legend_x = right - width_legend; console.log(legend_x);
 
     // Create the legend from existing chart
     var copy = clone(sel_st).attr('id', 'legend')
-        .attr("transform", 'translate('+ (x_scale_grid(0)) +','+ (legend_y) +')');
+        .attr("transform", 'translate('+ (x_scale_grid(0) + 8) +','+ (legend_y) +')');
 
     // Move st abbreviation
     var leg_abbrv = d3.select('#legend').select('.st-title');
@@ -258,7 +262,9 @@ var reUsableChart = function(_myData) {
 
 
     // resize that ish
-    x_scale_st.range([0, width_legend]).padding(0.45);
+    x_scale_st.range([0, width_legend])
+      .paddingOuter(0)  // 0.3
+      .paddingInner(0.2); // 0.2
     y_scale_st.range([height_legend, 0]);
 
     var ca = states.filter(function(d) { return d.key === 'CA'; })[0].values;
@@ -270,33 +276,21 @@ var reUsableChart = function(_myData) {
 
 
     // Add full X axis
-    var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
-    var date_ticks = function(d) {
-      var mapping = {
-      '-4.0': 'Fri, Dec 30th 2017',
-      '-3.0': 'Jan 6th, 2017',
-      '-2.0': 'Jan 13th',
-      '-1.0': 'Jan 20th',
-      '1.0': 'Sat, Feb 4th',
-      '2.0': 'Feb 11th',
-      '3.0': 'Feb 18th',
-      '4.0': 'Feb 25th'
-      };
-      return mapping[d];
-    };
-    x_axis_st.tickValues(date_ticks);
     copy.append('g')
       .attr('class', 'x axis')
       .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-      .call(d3.axisBottom(x_scale_st).tickFormat(function(d) {
-        var str_tick = d.toString();
-        return date_ticks(str_tick);
-      }));
+      .call(x_axis_st.tickSizeInner(2).tickSize(2).tickPadding(0))
+    .selectAll('.tick text')
+      .call(wrap, x_scale_st.bandwidth());
     // Y axis
+    copy.select('.justTicks').remove();
     copy.append('g')
       .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
       .attr('class', 'y axis')
-      .call(y_axis_st.tickFormat(d3.format(".0%")))
+      .call(y_axis_st
+          //.tickFormat(d3.format(".0%"))
+          .tickSize(2)
+        )
         .select("g:nth-child(2)")
         .remove();
 
@@ -320,7 +314,7 @@ var reUsableChart = function(_myData) {
     var title_y = d3.select('#chartTitle').attr('y'); console.log(title_y, title_x);
 
     // math to find out where to put the how to note
-    var bottom_how = (y_scale_grid(5) + tile_height) - 25;
+    var bottom_how = (y_scale_grid(5) + tile_height);
 
     // legend abbreviation pos
     var st_h = y_scale_grid(6) + tile_height - (1.61 * margin_st.top);
@@ -328,64 +322,27 @@ var reUsableChart = function(_myData) {
         (2.5 * x_scale_grid.padding() * x_scale_grid.bandwidth());
 
     var annotations = [
-      { // Subtitle
-        "x": 7.685950413223111,
-        "y": 100,
-        "dx": 59,
-        "dy": 4,
-        "data": {},
-        "note": {
-          "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries.",
-          "wrap": 225
-        }
-      },
       {
-        "y": bottom_how,
-        "dx":59,
-        "data":{"x": 0},
-        "disable": ['connector', 'subject'],
-        "note":{
-          "title":"How to read this chart:",
-          "wrap":75.40540540540542
-      }},
-      {
-        /*
-          "y": st_h,
-          "x": st_w,
-          "note":{"title":"State Name", "wrap":75.40540540540542},
-          "data":{},
-          "type": d3.annotationCallout
-        */
-        "x": 198.22727272727275,
-        "y": 484.27259259259256,
-        "dx": 55,
-        "dy": -12,
+        "x": 15.685950413223111,
+        "y": 422.22222222222223,
+        "dx": 26.000000953674316,
+        "dy": -23,
         "note": {
-          "title": "State Name",
+          "title": "Legend:",
           "wrap": 75.40540540540542
         },
-        "data": {},
-        "type": d3.annotationCallout
+        "data": {}
       },
       {
-        /*
-          "y": y_scale_grid(7) + tile_height + margin_grid.bottom,
-          "dy": -tile_height / 2,
-          "note":{"title":"Week Before & After Ban", "wrap":75.40540540540542},
-          //"subject": { }
-          "data":{"x": 3},
-          "type": d3.annotationCallout
-        */
-        "x": 198.26446280991735,
-        "y": 584.9629629629629,
-        "dx": 56,
-        "dy": -15.666666666666664,
-        "data": {},
+        "x": 159.26446280991735,
+        "y": 559.9629629629629,
+        "dx": 36,
+        "dy": -12.666666666666664,
         "note": {
           "title": "Week Before & After Ban",
           "wrap": 75.40540540540542
         },
-        "type": d3.annotationCallout
+        "data": {}
       }
     ];
 
@@ -398,7 +355,7 @@ var reUsableChart = function(_myData) {
       })
       .annotations(annotations);
 
-    d3.select('svg').append('g')
+    g.append('g')
       .attr('class', 'annotation-group')
       .attr('text-align', 'start')
       .call(window.anot);
@@ -430,7 +387,7 @@ var reUsableChart = function(_myData) {
 
       // Overall state stuff here
       x_scale_st
-        .domain([-4, -3, -2, -1, 1, 2, 3, 4])
+        .domain(date_ticks)
         .range([0, tile_width]);
       y_scale_st
         // .domain([0, d3.max(data, function(d) { return yValue(d); })])//.nice()
@@ -481,6 +438,15 @@ var reUsableChart = function(_myData) {
         .attr('dy', margin_st.top)
         .text(function(d) { return d.key; });
 
+
+      // Add TICKS
+      g_states.append('g')
+        .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
+        .attr('class', 'justTicks')
+        .call(y_axis_st.tickSize(-2.5).tickFormat(d3.format("")))
+          .select("g:nth-child(2)")
+          .remove();
+
       // Outline rectangles
       g_states.append('rect')
         .attr('width', tile_width)
@@ -499,11 +465,6 @@ var reUsableChart = function(_myData) {
 
       // Add annotations
       add_annotations();
-
-
-
-
-
 
     });
   }
@@ -526,12 +487,22 @@ var reUsableChart = function(_myData) {
       '3.0': '2017-02-18',
       '4.0': '2017-02-25'
     };
-
+    var week_to_str = {
+      '-4.0': date_ticks[0],
+      '-3.0': date_ticks[1],
+      '-2.0': date_ticks[2],
+      '-1.0': date_ticks[3],
+      '1.0': date_ticks[4],
+      '2.0': date_ticks[5],
+      '3.0': date_ticks[6],
+      '4.0': date_ticks[7],
+    };
+    //x_axis_st.tickValues(date_ticks);
     d3.csv(csvFile, function(error, f) {
       f = f.map(function(d) {
         d.cnt = +d.cnt;
         d.rate = +d.rate;
-        d.date = week_to_date[d.week];
+        d.date = week_to_str[d.week];
         d.week = +d.week;
 
         return d;
