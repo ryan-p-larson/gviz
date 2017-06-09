@@ -32,22 +32,16 @@ var reUsableChart = function(_myData) {
     "HI":[0,7],"TX":[3,7],"FL":[8,7]
   };
   var g, g_states;
-  var tooltip = d3.select("body")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("z-index", "10")
-      .style("visibility", "hidden");
 
   // 1.1 All options that should be accessible to caller
-  var margin_grid = {top: 10, right: 10, bottom: 40, left:20};
+  var margin_grid = {top: 10, right: 10, bottom: 20, left:20};
   var width_grid = 960 - margin_grid.left - margin_grid.right;
   var height_grid = 600 - margin_grid.top - margin_grid.bottom;
   var padding_grid = 0.1;
   var x_scale_grid = d3.scaleBand();
   var y_scale_grid = d3.scaleBand();
 
-  var margin_st = {top: 12, right: 5, bottom: 15, left:10};
+  var margin_st = {top: 12, right: 4, bottom: 15, left:10};
   var tile_width;
   var tile_height;
   var axis_format = d3.format(".2f");//".0%"
@@ -217,8 +211,8 @@ var reUsableChart = function(_myData) {
   }
   function get_state_tile_pos(st) {
     var pos = state_mapping[st];
-    var x = x_scale_grid(pos[0]),
-        y = y_scale_grid(pos[1]);
+    var x = x_scale_grid(pos[0] + 1);
+    var y = y_scale_grid(pos[1]);
     return 'translate(' + x + ',' + y + ')';
   }
   function format_tick(tick) {
@@ -231,20 +225,26 @@ var reUsableChart = function(_myData) {
     return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
   }
   function add_legend(sel_st) {
-    var scale_factor = 1.5;
-    var width_legend = 2 * tile_width + x_scale_st.padding();
-    var height_legend = scale_factor * tile_height;
+    var height_factor = 1.61, width_factor = 2.5;
+    var height_legend = height_factor * tile_height;
+    var width_legend = (width_factor * tile_width) +
+              (width_factor * x_scale_grid.padding() * x_scale_grid.bandwidth());
 
-    var copy = clone(sel_st)
-        .attr('id', 'legend')
-        .attr("transform", 'translate(' +
-          (x_scale_grid(0)) + ',' +
-          (y_scale_grid(7) - 25) + ')');
+    ////// math to calculate where the legend should go
+    var bottom = y_scale_grid(7) +  + tile_height;
+    var legend_y = bottom - height_legend;
+
+    // Create the legend from existing chart
+    var copy = clone(sel_st).attr('id', 'legend')
+        .attr("transform", 'translate('+ (x_scale_grid(0)) +','+ (legend_y) +')');
 
     // Move st abbreviation
     var leg_abbrv = d3.select('#legend').select('.st-title');
-    leg_abbrv.attr('dx', width_legend - margin_st.right)
-      .attr('dy', margin_st.top)
+    leg_abbrv
+        .attr('dx', width_legend - width_factor * margin_st.right)
+        .attr('dy', height_factor * margin_st.top)
+        .attr('id', 'legAbbrv')
+        .style('font-size', '14px');
 
 
     // resize that ish
@@ -294,21 +294,42 @@ var reUsableChart = function(_myData) {
 
   function add_annotations() {
 
+    // math to find out where to put the how to note
+    var bottom_how = (y_scale_grid(5) + tile_height) - 25;
+
+    // legend abbreviation pos
+    var st_h = y_scale_grid(6) + tile_height - (1.61 * margin_st.top);
+    var st_w = (tile_width * 2.5) +
+        (2.5 * x_scale_grid.padding() * x_scale_grid.bandwidth());
+    console.log(st_w, st_h, x_scale_grid(3));
+
     var annotations = [
-      {"x":8.37837837837833,
-      "y":346.2962962962963,
-      "dx":59,
-      "dy":36,
-      "data":{},
-      "disable": ['connector', 'subject'],
-      "note":{
-        "title":"How to read this chart:",
-        "wrap":75.40540540540542
+      {
+        "y": bottom_how,
+        "dx":59,
+        "data":{"x": 0},
+        "disable": ['connector', 'subject'],
+        "note":{
+          "title":"How to read this chart:",
+          "wrap":75.40540540540542
       }},
-      {"x":120, "y":503,
-      "dx":65,"dy":-11,
-      "note":{"title":"Abbreviation"},
-      "data":{}}
+      {
+        //"dx":19,"dy":1.5,
+        "y": st_h,
+        "x": st_w,
+        "note":{"title":"State Name", "wrap":75.40540540540542},
+        "data":{},
+        "type": d3.annotationCallout
+      },
+      {
+        //"dx": x_scale_grid.paddingInner(), "dy": 2,
+        "y": y_scale_grid(7) + tile_height + margin_grid.bottom,
+        "dy": -tile_height / 2,
+        "note":{"title":"Week Before & After Ban", "wrap":75.40540540540542},
+        //"subject": { }
+        "data":{"x": 3},
+        "type": d3.annotationCallout
+      }
     ];
 
     window.anot = d3.annotation()
@@ -339,7 +360,7 @@ var reUsableChart = function(_myData) {
 
       // Set grid code here
       x_scale_grid
-        .domain(_.range(0, 11))
+        .domain(_.range(0, 12))
         .range([0, width_grid])
         .padding(padding_grid);
       y_scale_grid
@@ -394,8 +415,7 @@ var reUsableChart = function(_myData) {
         .attr('width', x_scale_st.bandwidth())
         .attr('y', function(d) { return y_scale_st(yValue(d)); })
         .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); })
-        .style('fill', function(d) { return color(d.week); })
-        .on('mouseover', function(d) { console.log(d); });
+        .style('fill', function(d) { return color(d.week); });
 
       // State text abbreviations
       g_states.append('text')
@@ -416,51 +436,20 @@ var reUsableChart = function(_myData) {
       // Add Chart title
       g.append('text')
         .attr('class', 'chartTitle')
-        .attr('y', y_scale_grid(1) - margin_st.bottom)
-        //.attr('dy', tile_height - margin_st.bottom)
+        .attr('y', y_scale_grid(0) - margin_st.bottom)
+        .attr('dy', '1.5em')
         .text('Immigration Tweets Normalized by State Population')
 
       // Add annotations
       add_annotations();
+
+
+
+
+
+
     });
   }
-  function highlight_bar(bar) {
-      var week = bar.week,
-          wk_selector = '.bar.wk-' + week;
-
-      var states_sel = tiles.map(function(d) { return d[2]; });
-      states_sel.forEach(function(d) {
-        if (state_lookup.hasOwnProperty(d)
-            && state_lookup[d].hasOwnProperty(week)) {
-
-          var st_week = state_lookup[d][week][0],
-              val = yValue(st_week);
-          g.select('#st-' + d).append('text')
-            //.attr('dx', function(d) { return x_scale_st(week); })
-            //.attr('dy', function(d) { return y_scale_st(val); })
-            .text(function(d) { return val; })
-
-        }
-
-        /*st.append('text')
-          .attr('dx', function(d) { return x_scale_st(week); })
-          .attr('dy', function(d) { return y_scale_st(); })
-          .text(function(d) { return yValue(d); });*/
-        //console.log(st.select(wk_selector));*/
-      });
-
-      /*
-      console.log(states);
-      d3.selectAll(states)
-        .data(function(d) { console.log(d); return d; })
-        .append('text')
-        .attr('class', 'barHighlightText')
-        .attr('dy', function(d) { return y_scale_st(yValue(d))})
-        .text(function(d) { return yValue(d); });
-        */
-  }
-
-
 
   ////////////////////////////////////////////////////
   // 5.0 Processing data begins here                //
@@ -490,8 +479,10 @@ var reUsableChart = function(_myData) {
 
         return d;
       });
+
       var filt5 = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
       var filt0 = filt5.filter(function(d) { return d.week != 0; });
+
       createChart(selection, filt0);
     });
   }
