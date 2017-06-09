@@ -148,6 +148,16 @@ var reUsableChart = function(_myData) {
     return chartAPI;
   }
 
+  chartAPI.x_scale_grid = function(_) {
+    if (!arguments.length) return x_scale_grid;
+    x_scale_grid = _;
+    return chartAPI;
+  }
+  chartAPI.y_scale_grid = function(_) {
+    if (!arguments.length) return y_scale_grid;
+    y_scale_grid = _;
+    return chartAPI;
+  }
   chartAPI.y_scale_st = function(_) {
     if (!arguments.length) return y_scale_st;
     y_scale_st = _;
@@ -219,13 +229,13 @@ var reUsableChart = function(_myData) {
     var percent = axis_format(tick);
     return percent.slice(1);
   }
-
   function clone(sel_node) {
     var node = d3.select(sel_node).node();
     return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
   }
+
+  var width_factor = 2.25, height_factor = 1.61;
   function add_legend(sel_st) {
-    var height_factor = 1.61, width_factor = 2.5;
     var height_legend = height_factor * tile_height;
     var width_legend = (width_factor * tile_width) +
               (width_factor * x_scale_grid.padding() * x_scale_grid.bandwidth());
@@ -261,16 +271,27 @@ var reUsableChart = function(_myData) {
 
     // Add full X axis
     var x_ticks = [-4, -3, -2, -1, 1, 2, 3, 4];
+    var date_ticks = function(d) {
+      var mapping = {
+      '-4.0': 'Fri, Dec 30th 2017',
+      '-3.0': 'Jan 6th, 2017',
+      '-2.0': 'Jan 13th',
+      '-1.0': 'Jan 20th',
+      '1.0': 'Sat, Feb 4th',
+      '2.0': 'Feb 11th',
+      '3.0': 'Feb 18th',
+      '4.0': 'Feb 25th'
+      };
+      return mapping[d];
+    };
+    x_axis_st.tickValues(date_ticks);
     copy.append('g')
       .attr('class', 'x axis')
       .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-      .call(x_axis_st.tickValues(x_ticks))
-      .select(function() { return this.parentNode; })
-        .append('text')
-        .attr('class', 'axisLegendLabel')
-        .attr('x', -margin_st.left)
-        .attr("y", tile_height + 22)
-        .text("Week from travel ban");
+      .call(d3.axisBottom(x_scale_st).tickFormat(function(d) {
+        var str_tick = d.toString();
+        return date_ticks(str_tick);
+      }));
     // Y axis
     copy.append('g')
       .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
@@ -294,6 +315,10 @@ var reUsableChart = function(_myData) {
 
   function add_annotations() {
 
+    // Code to get the subtitle positioning
+    var title_x = d3.select('#chartTitle').attr('x');
+    var title_y = d3.select('#chartTitle').attr('y'); console.log(title_y, title_x);
+
     // math to find out where to put the how to note
     var bottom_how = (y_scale_grid(5) + tile_height) - 25;
 
@@ -301,9 +326,19 @@ var reUsableChart = function(_myData) {
     var st_h = y_scale_grid(6) + tile_height - (1.61 * margin_st.top);
     var st_w = (tile_width * 2.5) +
         (2.5 * x_scale_grid.padding() * x_scale_grid.bandwidth());
-    console.log(st_w, st_h, x_scale_grid(3));
 
     var annotations = [
+      { // Subtitle
+        "x": 7.685950413223111,
+        "y": 100,
+        "dx": 59,
+        "dy": 4,
+        "data": {},
+        "note": {
+          "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries.",
+          "wrap": 225
+        }
+      },
       {
         "y": bottom_how,
         "dx":59,
@@ -314,20 +349,42 @@ var reUsableChart = function(_myData) {
           "wrap":75.40540540540542
       }},
       {
-        //"dx":19,"dy":1.5,
-        "y": st_h,
-        "x": st_w,
-        "note":{"title":"State Name", "wrap":75.40540540540542},
-        "data":{},
+        /*
+          "y": st_h,
+          "x": st_w,
+          "note":{"title":"State Name", "wrap":75.40540540540542},
+          "data":{},
+          "type": d3.annotationCallout
+        */
+        "x": 198.22727272727275,
+        "y": 484.27259259259256,
+        "dx": 55,
+        "dy": -12,
+        "note": {
+          "title": "State Name",
+          "wrap": 75.40540540540542
+        },
+        "data": {},
         "type": d3.annotationCallout
       },
       {
-        //"dx": x_scale_grid.paddingInner(), "dy": 2,
-        "y": y_scale_grid(7) + tile_height + margin_grid.bottom,
-        "dy": -tile_height / 2,
-        "note":{"title":"Week Before & After Ban", "wrap":75.40540540540542},
-        //"subject": { }
-        "data":{"x": 3},
+        /*
+          "y": y_scale_grid(7) + tile_height + margin_grid.bottom,
+          "dy": -tile_height / 2,
+          "note":{"title":"Week Before & After Ban", "wrap":75.40540540540542},
+          //"subject": { }
+          "data":{"x": 3},
+          "type": d3.annotationCallout
+        */
+        "x": 198.26446280991735,
+        "y": 584.9629629629629,
+        "dx": 56,
+        "dy": -15.666666666666664,
+        "data": {},
+        "note": {
+          "title": "Week Before & After Ban",
+          "wrap": 75.40540540540542
+        },
         "type": d3.annotationCallout
       }
     ];
@@ -435,7 +492,7 @@ var reUsableChart = function(_myData) {
 
       // Add Chart title
       g.append('text')
-        .attr('class', 'chartTitle')
+        .attr('id', 'chartTitle')
         .attr('y', y_scale_grid(0) - margin_st.bottom)
         .attr('dy', '1.5em')
         .text('Immigration Tweets Normalized by State Population')

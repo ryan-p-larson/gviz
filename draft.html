@@ -32,11 +32,19 @@
 		.body {
 			font-family: 'Roboto';
 		}
-		.chartTitle {
+		:root {
+			--annotation-color: #333333;
+		}
+		svg {
+			border: 1px solid rgba(51, 51, 51, 0.1);
+		}
+
+		#chartTitle {
 			font-family: 'Roboto', sans-serif;
 			font-weight: 600;
 			font-size: 20px;
 		}
+
 		.state {
 			stroke: #333;
 			stroke-width: 1px;
@@ -50,6 +58,7 @@
 			font-size: 9px;
 			font-weight: 600;
 		}
+
 		.axis path {
         fill: none;
         stroke: none;
@@ -72,6 +81,7 @@
 			font-size: 10px;
 			font-weight: normal;
 		}
+
 		.annotation-note-title, #legendTitle {
 			fill: #262626;
 			font-family: 'Roboto', sans-serif;
@@ -85,16 +95,13 @@
 			font-weight: 600;
 			line-height: 1.42;
     }
-		:root {
-			--annotation-color: #333333;
-		}
+
 	</style>
 </head>
 
 <body>
 <!-- container -->
 <div class="container">
-
 	<div class="row">
 		<div class="panel panel-default">
 			<div class="panel-heading">
