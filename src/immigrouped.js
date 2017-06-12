@@ -1,4 +1,4 @@
-var reuseableLine = function(_myData) {
+var reuseableBar = function(_myData) {
   "use strict";
   var file; // reference to data (embedded or in file)
 
@@ -8,6 +8,8 @@ var reuseableLine = function(_myData) {
   var g;
   var keys = ['immigrant', 'immigration'];//, 'total', 'nonimmigrant'];
   var focus;
+  var date_ticks = ["Dec 30th", "Jan 6th, 2017", "Jan 13th",
+                  "Jan 20th", "Feb 4th", "Feb 11th", "Feb 18th", "Feb 25th"];
 
   // 1.1 All options that should be accessible to caller
   var margin = {top: 20, right: 20, bottom: 20, left: 40};
@@ -17,15 +19,11 @@ var reuseableLine = function(_myData) {
   var data = [];
   var debugOn = false;
 
-  var x_value = function(d) { return d.date; };
-  var x_scale = d3.scaleTime().range([0, width]);
-  var x_axis = d3.axisBottom(x_scale);
-  var x = function(d) { return x_scale(x_value(d)); };
-  var y_value = function(d) { return d.immigration; };
-  var y_scale = d3.scaleLinear().range([height, 0]);
-  var y_axis = d3.axisLeft(y_scale).tickFormat(format_ticks);
-  var y = function(d) { return y_scale(y_value(d)); };
-
+  // SCALES
+  var x_0 = d3.scaleBand()  // WEEKS
+      .rangeRound([0, width]).paddingInner(0.1);
+  var x_1 = d3.scaleBand().padding(0.1);
+  var y = d3.scaleLinear().rangeRound([height, 0]);
   var color = d3.scaleOrdinal(['#addd8e', '#238443']);
 
   var parse_date = d3.timeParse('%Y-%m-%d');
@@ -34,13 +32,6 @@ var reuseableLine = function(_myData) {
       .curve(d3.curveMonotoneX)
       .x(function(d) { return x_scale(d.data.date); })
       .y(function(d) { return y_scale(y_value(d)); });
-  var area = d3.area()
-      .x(function(d) { return x_scale(d.data.date); })
-      .y0(function(d) { return y_scale(d[0]); })
-      .y1(function(d) { return y_scale(d[1]); })
-      .curve(d3.curveCardinal);
-  var stack = d3.stack();
-  var t = d3.transition().duration(25).ease(d3.easePoly);
 
   ////////////////////////////////////////////////////
   // 2.0 API for external access                    //
@@ -49,7 +40,8 @@ var reuseableLine = function(_myData) {
   // standard API for selection.call()
   function chartAPI(selection) {
     selection.each( function (d) {
-      
+
+      //console.log("_myData "+ _myData);
       if (typeof d !== 'undefined') { // data processing from outside
         createChart(selection, d);
       }
@@ -61,71 +53,20 @@ var reuseableLine = function(_myData) {
     });
   }
 
-  // API - example for getter-setter method
-  // 2.1 add getter-setter  methods here
-  chartAPI.width = function(value) {
-    if (!arguments.length) return width;
-    width = value;
-    if (typeof updateWidth === 'function') updateWidth();
-    return chartAPI;
-  };
-  chartAPI.debugOn = function(_) {
-    if (!arguments.length) return debug;
-    debugOn = _;
-    return chartAPI;
-  };
 
   ////////////////////////////////////
   // 3.0 add private functions here //
   ////////////////////////////////////
-  function get_highest_day(attr) {
-    var highest_so_far = 0;
-    var highest_day;
 
-    data.forEach(function(d) {
-      var val = d[attr];
-      if (val > highest_so_far) {
-        highest_so_far = val;
-        highest_day = d;
-      }
-    });
-    return highest_so_far;
-  }
 
-  var bisectDate = d3.bisector(x_value).left;
-  function mousemove() {
-    var mouse_x = d3.mouse(this)[0],
-        x0 = x_scale.invert(mouse_x),
-        i = bisectDate(data, x0, 1),
-        d0 = data[i - 1],
-        d1 = data[i],
-        d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-
-    focus.style("display", null);
-
-    focus.select('#dateLabel').text("");
-    focus.select('#dateLabel').interrupt().transition(t)
-      .attr('x', x_scale(x0))
-      .text(d.date.toDateString());
-
-    focus.selectAll('.label').interrupt().transition(t)
-      .attr("transform", function(e) {
-        return "translate(" + x_scale(x0) + "," + y_scale(d[e]) + ")";
-      })
-      .text(function(e) { return e +': '+ format_ticks(d[e]); });
-    focus.selectAll('circle').interrupt().transition(t)
-      .attr("transform", function(e) {
-        return "translate(" + x_scale(x0) + "," + y_scale(d[e]) + ")";
-      });
-
-  }
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
 
   function createChart(selection, _file) {
     data = _file;
-	  if (debugOn) { console.log(data);}
+	  console.log(data);
+
     selection.each(function () {
       // 4.1 insert code here
       var dom = d3.select(this);
@@ -133,46 +74,71 @@ var reuseableLine = function(_myData) {
         .attr('height', height + margin.bottom + margin.top)
         .attr('width', width + margin.left + margin.right);
       g = svg.append('g')
-        .attr('class', 'lineChart')
+        .attr('class', 'barChart')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      x_scale.domain(d3.extent(data, x_value));
-      y_scale.domain([0, d3.max(data, y_value) * 1.2]);
+      var nested = d3.nest()
+          .key(function(d) { return d.week; })
+          .rollup(function(v) { return {
+            immigrant: d3.sum(v, function(v) { return v.immigrant; }),
+            immigration: d3.sum(v, function(v) { return v.immigration; })
+            };
+          })
+          .entries(data);
+
+      // SCALE SETTING
+      y.domain([0, d3.max(nested, function(d) { return d.value.immigrant; })]);
+      x_0.domain(nested.map(function(d) { return d.key; }));
+      x_1.domain(keys).rangeRound([0, x_0.bandwidth()]);
       color.domain(keys);
-      stack.keys(keys);
 
-      var layer = g.append('g').attr('class', 'layers').selectAll('.layer')
-          .data(stack(data).reverse())
+      // DATA TO CHART CALC
+      var week = g.append('g').attr('class', 'weeks').selectAll('.week')
+          .data(nested)
             .enter().append('g')
-          .attr('class', 'layer');
-
-      layer.append('path')
-        .attr('class', 'area')
+          .attr('class', 'week')
+          .attr('transform', function(d) {
+            return 'translate('+ x_0(d.key) + ',0)'; });
+      week.selectAll('rect')
+        .data(function(d) { return keys.map(function(key) { return {key: key, value: d.value[key]}; }); })
+          .enter().append('rect')
+        .attr('x', function(d) { return x_1(d.key); })
+        .attr('y', function(d) { return y(d.value); })
+        .attr('width', function(d) { return x_1.bandwidth(); })
+        .attr('height', function(d) { return height - y(d.value); })
         .style('fill', function(d) { return color(d.key); })
-        .attr('d', area);
+
+        .append('text')
+          .attr('x', function(d) { return x_1(d.key); })
+          .attr('y', function(d) { return y(d.value); })
+          .attr('dy', 10)
+          .text(function(d) { return format_ticks(d.value); });
+
 
       // Axes
       var axes = g.append('g')
       axes.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
-        .call(x_axis);
+        .call(d3.axisBottom(x_0));
       axes.append("g")
           .attr("class", "axis axis--y")
-          .call(y_axis)
+          .call(d3.axisLeft(y).tickFormat(format_ticks))
         .append("text")
           .attr("transform", "rotate(-90)")
           .attr("y", 6)
           .attr("dy", "0.71em")
           .attr("fill", "#000")
-          .text("Count per Day");
+          .text("Occurences per Week");
+
 
       ////////////////
       // legend
+
       var legend = d3.legendColor()
           .orient('vertical')
           .title('Keyword')
-          .labels(["immigrant", "immigration", "total"])
+          .labels(keys)
           .shapeWidth(45)
           .shapeHeight(30)
           .scale(color);
@@ -180,8 +146,9 @@ var reuseableLine = function(_myData) {
         .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
       g.select('.legend').call(legend);
 
-      /////
+
       // Mouseover
+      /*
       focus = g.append('g').selectAll('.focus')
         .data(keys)
           .enter().append('g')
@@ -207,6 +174,7 @@ var reuseableLine = function(_myData) {
         .on("mouseover", mousemove)
         .on("mouseout", function() { focus.style("display", "none"); })
         .on("mousemove", mousemove);
+      */
     });
   }
 
@@ -219,9 +187,10 @@ var reuseableLine = function(_myData) {
   function readData(csvFile, selection) {
       d3.csv(csvFile, convertToNumber, function(error, f) {
         //console.log(f);
-        //f = f.filter(function(d) { return d.})
+        var filt5 = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
+        var filt0 = filt5.filter(function(d) { return d.week != 0; });
 
-        createChart(selection, f);
+        createChart(selection, filt0);
       });
     }
 

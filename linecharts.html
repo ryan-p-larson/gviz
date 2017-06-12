@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8">
-	<title>Top Terms Linechart</title>
+	<title>Top Terms Charts</title>
 
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -77,29 +77,34 @@
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<div class="row">
-					<div class="col-xs-12"><h1>Top Termss</h1></div>
+					<div class="col-xs-12"><h1>Top Terms</h1></div>
 				</div>
 			</div>
 
 			<div class="panel-body">
 				<div class="row">
-					<div class="col-xs-12" id='immigrantChart'>
+					<div class="col-xs-12" id='lineChart'>
 						<h3>Immigrant vs. Immigration</h3>
 					</div>
 					<hr>
-					<div class="col-xs-12" id=''>
-						<h3>Chart Pending</h3>
+					<div class="col-xs-12" id='barChart'>
+						<h3>Grouped Terms</h3>
 					</div>
 				</div>
 
 			</div>
 	</div>
 </div>
+
 <script src="src/immigration.js"></script>
+<script src="src/immigrouped.js"></script>
 <script>
 
 var line_immig = reuseableLine('data/processed/web/term-date-counts.csv');
-d3.select('#immigrantChart').call(line_immig);
+d3.select('#lineChart').call(line_immig);
+
+var bar_immig = reuseableBar('data/processed/web/term-date-counts.csv');
+d3.select('#barChart').call(bar_immig);
 
 </script>
 </body>
