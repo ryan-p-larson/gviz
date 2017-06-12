@@ -1,4 +1,4 @@
-var reUsableChart = function(_myData) {
+ reUsableChart = function(_myData) {
   "use strict";
   var file; // reference to data (embedded or in file)
 
@@ -59,7 +59,7 @@ var reUsableChart = function(_myData) {
       .tickSizeInner(0);
   var y_axis_st = d3.axisLeft()
       .scale(y_scale_st)
-      .tickValues([0.00, 0.05, 0.15, 0.25])
+      .tickValues([0.00, 0.05, 0.1, 0.15, 0.2])
       .tickFormat(format_tick)
       .tickPadding(1)
       .tickSizeOuter(0)
@@ -237,130 +237,6 @@ var reUsableChart = function(_myData) {
     return d3.select(node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling));
   }
 
-  function add_legend(sel_st) {
-    var width_legend = (width_factor * tile_width) +
-              (width_factor * x_scale_grid.padding() * x_scale_grid.bandwidth());
-    var height_legend = tile_height * height_factor;
-
-    ////// math to calculate where the legend should go
-    var bottom = y_scale_grid(7) + tile_height * .66;
-    var legend_y = bottom - height_legend;
-    var right = x_scale_grid(2) - x_scale_grid.paddingInner() *3;
-    var legend_x = right - width_legend; console.log(legend_x);
-
-    // Create the legend from existing chart
-    var copy = clone(sel_st).attr('id', 'legend')
-        .attr("transform", 'translate('+ (x_scale_grid(0) + 8) +','+ (legend_y) +')');
-
-    // Move st abbreviation
-    var leg_abbrv = d3.select('#legend').select('.st-title');
-    leg_abbrv
-        .attr('dx', width_legend - width_factor * margin_st.right)
-        .attr('dy', height_factor * margin_st.top)
-        .attr('id', 'legAbbrv')
-        .style('font-size', '14px');
-
-
-    // resize that ish
-    x_scale_st.range([0, width_legend])
-      .paddingOuter(0)  // 0.3
-      .paddingInner(0.2); // 0.2
-    y_scale_st.range([height_legend, 0]);
-
-    var ca = states.filter(function(d) { return d.key === 'CA'; })[0].values;
-    var bars = d3.select('#legend').selectAll('rect.bar').data(ca);
-    bars.attr('x', function(d) { return x_scale_st(xValue(d)); })
-      .attr('width', x_scale_st.bandwidth())
-      .attr('y', function(d) { return y_scale_st(yValue(d)); })
-      .attr('height', function(d) { return height_legend - y_scale_st(yValue(d)); })
-
-
-    // Add full X axis
-    copy.append('g')
-      .attr('class', 'x axis')
-      .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
-      .call(x_axis_st.tickSizeInner(2).tickSize(2).tickPadding(0))
-    .selectAll('.tick text')
-      .call(wrap, x_scale_st.bandwidth());
-    // Y axis
-    copy.select('.justTicks').remove();
-    copy.append('g')
-      .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-      .attr('class', 'y axis')
-      .call(y_axis_st
-          //.tickFormat(d3.format(".0%"))
-          .tickSize(2)
-        )
-        .select("g:nth-child(2)")
-        .remove();
-
-    /* Add title
-    copy.append('text')
-      .attr('id', 'legendTitle')
-      .attr('dy', -margin_st.top)
-      .text('How to read this chart:')*/
-    //d3.select('#legendTitle').call(wrap, tile_width);
-
-    // update background rect
-    d3.select('#legend').select('.background')
-      .attr('width', width_legend)
-      .attr('height', height_legend);
-  }
-
-  function add_annotations() {
-
-    // Code to get the subtitle positioning
-    var title_x = d3.select('#chartTitle').attr('x');
-    var title_y = d3.select('#chartTitle').attr('y'); console.log(title_y, title_x);
-
-    // math to find out where to put the how to note
-    var bottom_how = (y_scale_grid(5) + tile_height);
-
-    // legend abbreviation pos
-    var st_h = y_scale_grid(6) + tile_height - (1.61 * margin_st.top);
-    var st_w = (tile_width * 2.5) +
-        (2.5 * x_scale_grid.padding() * x_scale_grid.bandwidth());
-
-    var annotations = [
-      {
-        "x": 15.685950413223111,
-        "y": 422.22222222222223,
-        "dx": 26.000000953674316,
-        "dy": -23,
-        "note": {
-          "title": "Legend:",
-          "wrap": 75.40540540540542
-        },
-        "data": {}
-      },
-      {
-        "x": 159.26446280991735,
-        "y": 559.9629629629629,
-        "dx": 36,
-        "dy": -12.666666666666664,
-        "note": {
-          "title": "Week Before & After Ban",
-          "wrap": 75.40540540540542
-        },
-        "data": {}
-      }
-    ];
-
-    window.anot = d3.annotation()
-      .editMode(true)
-      .type(d3.annotationLabel)
-      .accessors({
-        x: function(d){ return x_scale_grid(d.x); },
-        y: function(d){ return y_scale_grid(d.y); }
-      })
-      .annotations(annotations);
-
-    g.append('g')
-      .attr('class', 'annotation-group')
-      .attr('text-align', 'start')
-      .call(window.anot);
-  }
-
   ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
   ////////////////////////////////////////////////////
@@ -428,8 +304,17 @@ var reUsableChart = function(_myData) {
         .attr('x', function(d) { return x_scale_st(xValue(d)); })
         .attr('width', x_scale_st.bandwidth())
         .attr('y', function(d) { return y_scale_st(yValue(d)); })
+        .attr('dy', '-1px') // compensate for future border
         .attr('height', function(d) { return tile_height - y_scale_st(yValue(d)); })
         .style('fill', function(d) { return color(d.week); });
+
+      // Add TICKS
+      g_states.append('g')
+        .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
+        .attr('class', 'justTicks')
+        .call(y_axis_st.tickSize(-tile_width).tickFormat(d3.format("")))
+          .select("g:nth-child(2)")
+          .remove();
 
       // State text abbreviations
       g_states.append('text')
@@ -438,14 +323,6 @@ var reUsableChart = function(_myData) {
         .attr('dy', margin_st.top)
         .text(function(d) { return d.key; });
 
-
-      // Add TICKS
-      g_states.append('g')
-        .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-        .attr('class', 'justTicks')
-        .call(y_axis_st.tickSize(-2.5).tickFormat(d3.format("")))
-          .select("g:nth-child(2)")
-          .remove();
 
       // Outline rectangles
       g_states.append('rect')
@@ -467,6 +344,158 @@ var reUsableChart = function(_myData) {
       add_annotations();
 
     });
+  }
+
+  function add_legend(sel_st) {
+    var width_legend = (width_factor * tile_width) +
+              (width_factor * x_scale_grid.padding() * x_scale_grid.bandwidth());
+    var height_legend = tile_height * height_factor;
+
+    ////// math to calculate where the legend should go
+    var bottom = y_scale_grid(7) + tile_height * .66;
+    var legend_y = bottom - height_legend;
+    var right = x_scale_grid(2) - x_scale_grid.paddingInner() *3;
+    var legend_x = right - width_legend; console.log(legend_x);
+
+    // Create the legend from existing chart
+    var copy = clone(sel_st).attr('id', 'legend')
+        .attr("transform", 'translate('+ (x_scale_grid(0) + 8) +','+ (legend_y) +')');
+
+    // Move st abbreviation
+    var leg_abbrv = d3.select('#legend').select('.st-title');
+    leg_abbrv
+        .attr('dx', width_legend - width_factor * margin_st.right)
+        .attr('dy', height_factor * margin_st.top)
+        .attr('id', 'legAbbrv')
+        .style('font-size', '14px');
+
+
+
+    // resize that ish
+    x_scale_st.range([0, width_legend])
+      .paddingOuter(0.3)  // 0.3
+      .paddingInner(0.2); // 0.2
+    y_scale_st.range([height_legend, 0]);
+
+    // Add full X axis
+    copy.append('g')
+      .attr('class', 'x axis')
+      .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
+      .call(x_axis_st
+        .tickValues([date_ticks[1], date_ticks[3], date_ticks[5], date_ticks[7]])
+        .tickSizeInner(2)
+        .tickSize(2)
+        .tickPadding(0))
+    .selectAll('.tick text')
+      .call(wrap, x_scale_st.bandwidth());
+    // Y axis
+    copy.select('.justTicks').remove();
+    copy.append('g')
+      .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
+      .attr('class', 'y axis')
+      .call(y_axis_st
+          //.tickFormat(d3.format(".0%"))
+          .tickSize(-width_legend)
+          .tickPadding(3))
+        .select("g:nth-child(2)")
+        .remove();
+
+    var ca = states.filter(function(d) { return d.key === 'CA'; })[0].values;
+    var bars = d3.select('#legend').selectAll('rect.bar').data(ca);
+    bars.attr('x', function(d) { return x_scale_st(xValue(d)); })
+      .attr('width', x_scale_st.bandwidth())
+      .attr('y', function(d) { return y_scale_st(yValue(d)); })
+      .attr('height', function(d) { return height_legend - y_scale_st(yValue(d)); })
+
+
+    // update background rect
+    d3.select('#legend').select('.background')
+      .attr('width', width_legend)
+      .attr('height', height_legend);
+
+    // Add a travel ban line
+    copy.append('g').attr('id', 'travelBanLine').append('line')
+      .attr('x1', function() { return x_scale_st("Jan 20th") + x_scale_st.bandwidth() + 1.5 })
+      .attr('x2', function() { return x_scale_st("Jan 20th") + x_scale_st.bandwidth() + 1.5 })
+      .attr('y1', y_scale_st(0.29))
+      .attr('y2', y_scale_st(0))
+      .style("stroke-dasharray", "4,4");
+  }
+
+  function add_annotations() {
+
+    // Code to get the subtitle positioning
+    var title_x = d3.select('#chartTitle').attr('x');
+    var title_y = d3.select('#chartTitle').attr('y'); console.log(title_y, title_x);
+
+    // math to find out where to put the how to note
+    var bottom_how = y_scale_grid(6) - 10;
+
+    // legend abbreviation pos
+    var st_h = y_scale_grid(6) + tile_height - (1.61 * margin_st.top);
+    var st_w = (tile_width * 2.5) +
+        (2.5 * x_scale_grid.padding() * x_scale_grid.bandwidth());
+
+    var annotations = [
+      {
+        "x": 15.685950413223111,
+        "y": bottom_how,
+        "dx": 26.000000953674316,
+        "dy": -12,
+        "type": d3.annotationLabel,
+        "note": {
+          "title": "Legend:",
+          "wrap": 75.40540540540542,
+        },
+        "disable": ['connector'],
+        "data": {}
+      },
+      {
+        "x": 150,
+        "y": 560,
+        "dx": tile_width/2, //36,
+        "dy": -12.666666666666664,
+        "note": {
+          "title": "Week Before & After Ban",
+          "wrap": 75.40540540540542,
+          align: "left"
+        },
+        "data": {},
+        className: "legendXTitle",
+
+        "type": d3.annotationCallout
+      },
+      {
+        "x": 82,
+        "y": 443,
+        "dx": 9,
+        "dy": -22,
+        "note": {
+          "title": "Travel Ban",
+          "label": "Jan 27th",
+          "wrap": 75.40540540540542,
+          align: "left"
+        },
+        "data": {},
+        className: "legendLineAnot",
+
+        "type": d3.annotationCallout
+      }
+    ];
+
+    window.anot = d3.annotation()
+      //.editMode(true)
+      .type(d3.annotationLabel)
+      .accessors({
+        x: function(d){ return x_scale_grid(d.x); },
+        y: function(d){ return y_scale_grid(d.y); }
+      })
+      .annotations(annotations);
+
+    g.append('g')
+      .attr('class', 'annotation-group')
+      .attr('text-align', 'start')
+      .call(window.anot);
   }
 
   ////////////////////////////////////////////////////
