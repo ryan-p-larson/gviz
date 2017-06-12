@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>Hashtag Line Chart</title>
+
+	<!-- CSS -->
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.css" />
+
+	<!-- Bootstrap and jQuery -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<!-- Lodash to make some functions easier -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+	<!-- Simple statistics for Jenks natural breaks -->
+	<script src="https://unpkg.com/simple-statistics@2.3.0/dist/simple-statistics.min.js"></script>
+
+	<!-- D3.js + TopoJson -->
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+
+	<!-- D3 legend + annotation -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.21.0/d3-legend.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.js"></script>
+
+	<!-- Styling -->
+	<link href="src/style.css" rel="stylesheet">
+	<style>
+	.line {
+		fill: none;
+		stroke: #333;
+		stroke-width: 1.5px;
+		stroke-opacity: 0.5;
+	}
+	.label {
+		font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+		font-weight: 700;
+		background-color: #fff;
+	}
+	.axis path, .axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+	.axis--x path {
+	  display: none;
+	}
+
+	.overlay {
+	  fill: none;
+	  pointer-events: all;
+	}
+
+	.focus circle {
+	  fill: none;
+	  stroke: #333;
+		stroke-width: 1.5px;
+	}
+	.layer path {
+		stroke: rgba(255, 255, 255, 127);
+		stroke-width: 0.5px;
+	}
+	.legendCells text {
+		font-size: 14px;
+	}
+	</style>
+</head>
+
+<body>
+<!-- container -->
+<div class="container">
+	<br>
+	<div class="row">
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+
+				<div class="row">
+					<div class="col-xs-12"><h1>Hashtag Line Chart</h1></div>
+				</div>
+			</div>
+
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-xs-12" id='hashtagChart'>
+						<h3>Most Popular Hashtags</h3>
+					</div>
+				</div>
+
+			</div>
+	</div>
+</div>
+<script src="src/hashtags.js"></script>
+<script>
+
+var line_hash = reUsableChart('data/processed/web/hashtag-counts-date-filtered.csv');
+d3.select('#hashtagChart')
+	.call(line_hash);
+
+</script>
+</body>
+</html>
