@@ -406,12 +406,14 @@
       .attr('width', x_scale_st.bandwidth())
       .attr('y', function(d) { return y_scale_st(yValue(d)); })
       .attr('height', function(d) { return height_legend - y_scale_st(yValue(d)); })
+      .style('fill-opacity', '0.25');
 
 
     // update background rect
     d3.select('#legend').select('.background')
       .attr('width', width_legend)
-      .attr('height', height_legend);
+      .attr('height', height_legend)
+      .style('stroke-opacity', 0.75);
 
     // Add a travel ban line
     copy.append('g').attr('id', 'travelBanLine').append('line')
