@@ -59,7 +59,7 @@
       .tickSizeInner(0);
   var y_axis_st = d3.axisLeft()
       .scale(y_scale_st)
-      .tickValues([0.00, 0.05, 0.1, 0.15, 0.2])
+      .tickValues([0.00, 0.05, 0.10, 0.20])
       .tickFormat(format_tick)
       .tickPadding(1)
       .tickSizeOuter(0)
@@ -319,10 +319,9 @@
       // State text abbreviations
       g_states.append('text')
         .attr('class', 'st-title')
-        .attr('dx', tile_width - margin_st.right)
-        .attr('dy', margin_st.top)
+        .attr('x', tile_width - margin_st.right)
+        .attr('y', margin_st.top)
         .text(function(d) { return d.key; });
-
 
       // Outline rectangles
       g_states.append('rect')
@@ -364,12 +363,11 @@
     // Move st abbreviation
     var leg_abbrv = d3.select('#legend').select('.st-title');
     leg_abbrv
-        .attr('dx', width_legend - width_factor * margin_st.right)
-        .attr('dy', height_factor * margin_st.top)
+        .attr('x', width_legend - width_factor * margin_st.right)
+        .attr('y', height_factor * margin_st.top)
         .attr('id', 'legAbbrv')
+        .style('fill-opacity', 0.5)
         .style('font-size', '14px');
-
-
 
     // resize that ish
     x_scale_st.range([0, width_legend])
@@ -379,26 +377,43 @@
 
     // Add full X axis
     copy.append('g')
-      .attr('class', 'x axis')
+      .attr('class', 'x axisLegend')
       .attr("transform", "translate(0," + y_scale_st.range()[0] + ")")
       .call(x_axis_st
         .tickValues([date_ticks[1], date_ticks[3], date_ticks[5], date_ticks[7]])
         .tickSizeInner(2)
-        .tickSize(2)
+        .tickSize(3)
         .tickPadding(0))
-    .selectAll('.tick text')
+      .selectAll('.tick text')
       .call(wrap, x_scale_st.bandwidth());
     // Y axis
     copy.select('.justTicks').remove();
-    copy.append('g')
+    var legend_y_axis = copy.append('g')
       .attr("transform", "translate("+  0 +"," + x_scale_st.range()[0] + ")")
-      .attr('class', 'y axis')
+      .attr('class', 'y axisLegend')
       .call(y_axis_st
-          //.tickFormat(d3.format(".0%"))
-          .tickSize(-width_legend)
-          .tickPadding(3))
-        .select("g:nth-child(2)")
-        .remove();
+          .tickSize(-width_legend - 2)
+          .tickSizeOuter(2)
+          .tickPadding(3));
+    legend_y_axis.select("g:nth-child(2)").remove();  // remove 0 tick
+
+    d3.select('#legend').select('.y.axisLegend').selectAll('line')
+      .attr('transform', function(d) { console.log(d);return 'translate(2, ' + y_scale_st(d) +')';
+    }); // hides white tick marks on axis
+
+    legend_y_axis.append("text")  // Y Axis Label
+      .attr('id', 'legendYTitle')
+      .attr("x", 10)
+      .attr("y", y_scale_st(y_scale_st.ticks().pop()) + 0.5)
+      .attr("dy", "0.32em")
+      .attr("fill", "#333")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .text("State Tweet Rate");
+    d3.select('#legendYTitle').call(wrap, tile_width)
+      .selectAll('*')
+      .attr('dx', 5)
+      .attr('dy', function(d, i) { return (i === 0) ? -20: -10; });
 
     var ca = states.filter(function(d) { return d.key === 'CA'; })[0].values;
     var bars = d3.select('#legend').selectAll('rect.bar').data(ca);
@@ -408,12 +423,11 @@
       .attr('height', function(d) { return height_legend - y_scale_st(yValue(d)); })
       .style('fill-opacity', '0.25');
 
-
     // update background rect
-    d3.select('#legend').select('.background')
-      .attr('width', width_legend)
-      .attr('height', height_legend)
-      .style('stroke-opacity', 0.75);
+    d3.select('#legend').select('.background').remove();
+      //.attr('width', width_legend)
+      //.attr('height', height_legend)
+      //.style('stroke-opacity', 0.75)
 
     // Add a travel ban line
     copy.append('g').attr('id', 'travelBanLine').append('line')

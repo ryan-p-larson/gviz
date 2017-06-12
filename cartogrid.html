@@ -5,7 +5,7 @@
 
 	<!-- CSS -->
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,900" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600,900" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/1.14.0/d3-annotation.min.css" />
 
 	<!-- Bootstrap and jQuery -->
@@ -29,77 +29,125 @@
 	<!-- Styling -->
 	<link href="src/style.css" rel="stylesheet">
 	<style>
+		.body {
+			font-family: 'Roboto';
+		}
+		:root {
+			--annotation-color: #333333;
+		}
+		svg {
+			border: 1px solid rgba(51, 51, 51, 0.1);
+		}
+
+		#chartTitle {
+			font-family: 'Roboto', sans-serif;
+			font-weight: 600;
+			font-size: 20px;
+		}
+
 		.state {
 			stroke: #333;
-			stroke-width: 0.5px;
+			stroke-width: 1px;
 			stroke-opacity: 0.5;
-			fill: none;
+			fill-opacity: 0;
+			fill: rgba(255, 255, 255, 255);
 			shape-rendering: crispEdges;
 		}
 		.st-title {
 			text-anchor: end;
-			font-family: sans-serif;
-			font-size: 10px;
+			font-family: 'Roboto', sans-serif;
+			font-size: 9px;
 			font-weight: 600;
 		}
+
 		.axis path {
         fill: none;
-        stroke: none;
+        stroke: #333;
+				stroke-width: 1px;
         shape-rendering: crispEdges;
     }
+		#legend > .y.axisLegend line {
+			stroke: #fff;
+		}
 		.axis line {
 			fill: none;
-			stroke: #fcfcfc;
-			stroke-width: 0.5px;
-			/*stroke-opacity: 0.5;*/
+			stroke: #ffffff;
+			stroke-width: 0.75px;
 			shape-rendering: crispEdges;
 		}
 		.axis text {
 			font-family: sans-serif;
 			font-size: 8px;
 		}
+
+		.justTicks path {
+			display: none;
+		}
+		.justTicks line {
+			stroke: #fff;
+			stroke-width: 1px;
+			stroke-opacity: 0.75;
+			fill: none;
+			shape-rendering: crispEdges;
+		}
+		.justTicks text {
+			display: none;
+		}
+
+		#legend .x.axis text {
+			font-size: 9px;
+		}
+		#legend .y.axis text {
+			font-size: 10px;
+		}
+		#travelBanLine {
+			stroke: #333;
+			stroke-width: 1px;
+		}
+
+		.axisLegendLabel {
+			text-anchor: start;
+			font-family: 'Roboto', sans-serif;
+			font-size: 10px;
+			font-weight: normal;
+		}
+
+		.annotation-note-title, #legendTitle {
+			fill: #262626;
+			font-family: 'Roboto', sans-serif;
+			font-size: 14px;
+			font-weight: 600;
+			text-anchor: start;
+		}
+		.legendLine {
+			font-size: 12px;
+		}
+
+		.label {
+			text-align: left;
+		}
+		.legendLineAnot text {
+			font-size: 1opx;
+		}
+
 	</style>
 </head>
 
 <body>
 <!-- container -->
 <div class="container">
-	<br>
 	<div class="row">
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<div class="row">
-					<div class="col-xs-12"><h1>Charts Cartogram</h1></div>
+					<div class="col-xs-12"><h1><strong>Charts Cartogram</strong></h1></div>
+							<div class="col-xs-12"><h3>Square Root Scaling</h3></div>
 				</div>
 			</div>
-
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-xs-2"><h3><strong>Scale</strong></h3></div>
-					<div class="col-xs-8"><h3><strong>Map</strong></h3></div>
-					<div class="col-xs-2">
-						<button type="button" id="btnRate" class="btn btn-default active" style="position:relative;bottom:-20px;">Rate</button>
-						<button type="button" id="btnCnt" class="btn btn-default" style="position:relative;bottom:-20px;">Count</button>
-					</div>
-				</div>
-				<hr>
-				<div class="row">
-					<div class="col-xs-2"><h3>Linear</h3></div>
-					<div class="col-xs-10" id='width-setter1'></div>
-				</div>
-				<div class="row">
-					<div class="col-xs-12"><h3>Square Root</h3></div>
-					<div class="col-xs-12" id='width-setter2'></div>
-				</div>
-				<div class="row">
-					<div class="col-xs-2"><h3>Log</h3></div>
-					<div class="col-xs-10" id='width-setter3'></div>
-				</div>
-				<div class="row">
-					<div class="col-xs-2"><h3>?</h3></div>
-					<div class="col-xs-10" id='width-setter4'></div>
-				</div>
-			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12" id='width-setter2'></div>
 	</div>
 </div>
 <script src="src/cartogrid.js"></script>
@@ -108,35 +156,7 @@
 var sqrt_cg = reUsableChart('data/processed/web/state-tweet-rates.csv')
 d3.select('#width-setter2').call(sqrt_cg);
 
-/*
-var linear_cg = reUsableChart('data/processed/web/state-tweet-rates.csv');
-d3.select('#width-setter1').call(linear_cg);
 
-var sqrt_cg = reUsableChart('data/processed/web/state-tweet-rates.csv')
-		.y_scale_st(d3.scaleSqrt());
-d3.select('#width-setter2').call(sqrt_cg);
-
-var log_cg = reUsableChart('data/processed/web/state-tweet-rates.csv')
-		.y_scale_st(d3.scalePow());
-d3.select('#width-setter3').call(log_cg);
-
-
-// Interactivity
-d3.select('#btnRate').on('click', function(b) {
-	d3.select('#btnCnt').classed('active', false);
-	var func = function(d) { return d.rate; };
-	linear_cg.yValue(func);
-	log_cg.yValue(func);
-	sqrt_cg.yValue(func);
-});
-d3.select('#btnCnt').on('click', function() {
-	d3.select('#btnRate').classed('active', false);
-	var func = function(d) { return d.cnt; };
-	linear_cg.yValue(func);
-	log_cg.yValue(func);
-	sqrt_cg.yValue(func);
-});
-*/
 </script>
 </body>
 </html>
