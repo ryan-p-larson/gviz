@@ -9,7 +9,7 @@ var reUsableChart = function(_myData) {
   var radiusValue = 5;
   var fillColor = '#326ada';
   var voronoi;
-  var t = d3.transition(150);
+  var t = d3.transition(100);
   var timeParse = d3.isoParse();
   var tooltip = d3.select("body")
       .append("div")
@@ -28,7 +28,7 @@ var reUsableChart = function(_myData) {
   var y_axis = d3.axisLeft().scale(y_scale);
   var xValue = function(d) { return x_scale(d.min); };
   var yValue = function(d) { return y_scale(d.count); };
-  var opacity = {dehighlight: 0.5, normal: 0.5, highlight: 1};
+  var opacity = {dehighlight: 0.5, normal: 0.65, highlight: 1};
   var color = d3.scaleOrdinal()
     .domain(["academic", "activist", "celebrity", "journalist", "politician", "troll", ""])
     .range(['#bebada', '#b3de69', '#8dd3c7', '#80b1d3', '#fb8072', '#fdb462', '#d9d9d9']);
@@ -167,9 +167,9 @@ var reUsableChart = function(_myData) {
         .attr('transform', 'translate('+ (width*.85) +','+ (height*0.05) +')');
     var legend = d3.legendColor()
         .title('User Category')
+        .shapeWidth(30)
         .shapePadding(10)
         .labelAlign('end')
-        //.labelOffset(100)
         .orient('vertical')
         .scale(color);
     d3.select('.legend').call(legend);
@@ -179,9 +179,56 @@ var reUsableChart = function(_myData) {
       .on('mouseover', function(d) {
         var cat = '.cat-' + d,
             sel = g.selectAll(cat);
-        sel.transition(t).style('opacity', opacity.highlight);
+        sel.interrupt().transition(t)
+          .attr('r', radiusValue * 1.5)
+          .style('stroke', '#fff')
+          .style('opacity', opacity.highlight);
         sel.raise();
+      })
+      .on('mouseout', function(d) {
+          var cat = '.cat-' + d,
+              sel = g.selectAll('circle');
+              sel.interrupt()
+                .attr('r', radiusValue)
+                .style('stroke', null)
+                .style('opacity', opacity.normal);
+          sel.lower();
       });
+
+
+
+      // add the travel ban line
+      var ban_x = x_scale(new Date(2017, 0, 26, 10));
+
+      // LEGEND
+      var notes = [  {
+          "x": ban_x,
+          "y": 85,
+          "dx": -75,
+          "dy": -49,
+          "className": "legendLineAnot",
+          "note": {
+            "title": "Travel Ban",
+            "label": "Jan 27th",
+            "wrap": 75.40540540540542,
+            "align": "right"
+          },
+          "data": {}
+        }
+      ];
+      window.anot = d3.annotation()
+        //.editMode(true)
+        .type(d3.annotationLabel)
+        .accessors({
+          x: function(d){ return x_scale(d.x); },
+          y: function(d){ return y_scale(d.y); }
+        })
+        .annotations(notes);
+      g.append('g')
+        .attr('class', 'annotation-group')
+        .attr('text-align', 'start')
+        .call(window.anot);
+
   }
   function addReset(allData) {
     var btn = d3.select('#resetChart');
@@ -218,6 +265,18 @@ var reUsableChart = function(_myData) {
       color
         .domain(data.map(function(d) { return d.category; }));
 
+      // add the travel ban line
+      var ban_x = x_scale(new Date(2017, 0, 26, 10));
+
+      g.append('g').attr('id', 'travelBanLine').append('line')
+        .attr('x1', ban_x)
+        .attr('x2', ban_x)
+        .attr('y1', y_scale.range()[0] + margin.bottom/3)
+        .attr('y2', y_scale.range()[1])
+        .style('stroke', '#333')
+        .style('stroke-width', '1px')
+        .style("stroke-dasharray", "4,4");
+
       drawChart(data);                  // Draw points
       drawMarkings('All Tweets');       // Add axes and title
       fillDropdown(data);               // Enable filtering
@@ -231,7 +290,7 @@ var reUsableChart = function(_myData) {
   function drawChart(data) {
 
     // Enter, update, exit
-    var tweets = g.select('.tweets').selectAll('.tweet').data(data);
+    var tweets = g.select('.tweets').selectAll('.tweet').data(data, function(d) { return d.id; });
     tweets.exit().transition(t).style('opacity', 0).remove();
     tweets.enter().append('circle')
       .attr('class', function(d) { return 'tweet user-' + d.user + ' cat-'+d.category; })

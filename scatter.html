@@ -28,6 +28,11 @@
 
 	<!-- Styling -->
 	<link href="src/style.css" rel="stylesheet">
+	<style>
+	:root {
+		--annotation-color: #333333;
+	}
+	</style>
 </head>
 
 <body>
@@ -39,7 +44,7 @@
 			<div class="panel-heading">
 				<div class="row">
 					<div class="col-xs-8">
-						<h1>Tweet Scatter</h1>
+						<h1>Opinion Leader Re-Tweets Before and After the Janurary 27th Travel Ban.</h1>
 						<p><b>How to use this chart: </b>There are three methods of interacting with the scatterplot. First is the <i>mouse</i>, mousing over and moving will render a tooltip with more information. Next is the <i>dropdown</i>, selecting an option will filter to only one user's tweets. Finally you can mouseover the <i>legend</i> to highlight and raise a category.</p>
 					</div>
 				</div>
@@ -77,11 +82,6 @@ var category_mapping = {
 	"troll": '#fb8072'
 }
 
-//reUsableChart('data/external/caglar/tweetstop100bryce.csv');
-//d3.csv('data/external/caglar/trumptweets.csv', function(data) {
-//d3.csv('data/external/caglar/tweets_top100opinionleaders.csv', function(data) {
-//d3.csv('data/external/caglar/tweetstop100bryce.csv', function(data) {
-//d3.csv('data/external/caglar/top100_with_categories.csv', function(data) {
 
 var scatter = reUsableChart('test.csv');
 d3.select('#width-setter').call(scatter);
