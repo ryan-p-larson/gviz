@@ -1,4 +1,4 @@
-var reuseableLine = function(_myData) {
+var reuseableStack = function(_myData) {
   "use strict";
   var file; // reference to data (embedded or in file)
 
@@ -186,7 +186,6 @@ var reuseableLine = function(_myData) {
           .style('text-anchor', 'start')
           .text("Count per Day");
 
-      ////////////////
       // legend
       var legend = d3.legendColor()
           .orient('vertical')
@@ -236,7 +235,6 @@ var reuseableLine = function(_myData) {
         .attr('class', 'focus')
         .attr('id', function(d) { return 'focus-' + d; })
         .style('display', 'none');
-
       focus.append('circle').attr('r', 4.5);
       focus.append("text")
         .attr('x', 10).attr('dy', ".35em")
@@ -253,8 +251,7 @@ var reuseableLine = function(_myData) {
         .on("mousemove", mousemove);
 
 
-
-      // LEGEND
+      // annotations
       var notes = [  {
           "y": 85,
           "dx": -75,

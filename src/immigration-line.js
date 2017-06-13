@@ -1,4 +1,4 @@
-var reuseableBar = function(_myData) {
+var reuseableLine = function(_myData) {
   "use strict";
   var file; // reference to data (embedded or in file)
 
@@ -16,17 +16,20 @@ var reuseableBar = function(_myData) {
   var width = 960 - margin.left - margin.right;
   var height = 600 - margin.top - margin.bottom;
   var format_ticks = d3.format(".2s");
+  var parse_date = d3.timeParse('%Y-%m-%d');
   var data = [];
   var debugOn = false;
 
   // SCALES
-  var x_0 = d3.scaleBand()  // WEEKS
-      .rangeRound([0, width]).paddingInner(0.1);
-  var x_1 = d3.scaleBand().padding(0.1);
-  var y = d3.scaleLinear().rangeRound([height, 0]);
+  var x_0 = d3.scaleTime().range([0, width]);
+  var y = d3.scaleLinear().range([height, 0]);
   var color = d3.scaleOrdinal(['#addd8e', '#238443', '#fec44f', '#d95f0e']);
 
-  var parse_date = d3.timeParse('%Y-%m-%d');
+
+  var line = d3.line()
+      .curve(d3.curveMonotoneX)//.curve(d3.curveBasis)
+      .x(function(d) { return x_0(d.date); })
+      .y(function(d) { return y(d.value); });
 
   ////////////////////////////////////////////////////
   // 2.0 API for external access                    //
@@ -52,9 +55,9 @@ var reuseableBar = function(_myData) {
     if (!arguments.length) return keys;
     keys = value;
 
-    var nested = get_nest(data, 'date');
+    var nested = get_lines(data, keys);
     set_scale(nested);
-    draw_bars(nested);
+    draw_lines(nested);
     draw_axes();
     draw_legend();
   };
@@ -62,26 +65,24 @@ var reuseableBar = function(_myData) {
   ////////////////////////////////////
   // 3.0 add private functions here //
   ////////////////////////////////////
-  function get_nest(data, key) {
-    var nested = d3.nest()
-        .key(function(d) { return d[key]; })
-        .rollup(function(v) {
-          var vals = {};
-          keys.forEach(function(k) {
-            vals[k] = d3.sum(v, function(v){ return v[k]; });
-          });
-          return vals;
-        })
-        .entries(data);
-    return nested;
+
+  function get_lines(data, keys) {
+    var lines = [];
+    var test = keys.map(function(key) {
+      var temp = {key: key, values: []};
+      data.forEach(function(d) {
+        temp.values.push({'date': d.date, 'value': d[key]});
+      });
+      return temp;
+    });
+    return test;
   }
 
-  ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
-  ////////////////////////////////////////////////////
 
   function createChart(selection, _file) {
     data = _file;
+    console.log(data);
 
     selection.each(function () {
       // 4.1 insert code here
@@ -90,8 +91,8 @@ var reuseableBar = function(_myData) {
 
       width = domDimensions.width - margin.left - margin.right;
       height = (domDimensions.width * 0.625) - margin.top - margin.bottom;
-      x_0.rangeRound([0, width]);
-      y.rangeRound([height, 0]);
+      x_0.range([0, width]);
+      y.range([height, 0]);
 
       var svg = dom.append('svg')
         .attr('height', height + margin.bottom + margin.top)
@@ -101,13 +102,14 @@ var reuseableBar = function(_myData) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       // Group Data
-      var nested = get_nest(data, 'date');
+      var lines = get_lines(data, keys);
 
       // SCALE SETTING
-      set_scale(nested);
+      set_scale(lines);
+      x_0.domain(d3.extent(data, function(d) { return d.date; }));
 
       // CHART MARKS
-      draw_bars(nested);
+      draw_lines(lines);
 
       // Axes
       draw_axes();
@@ -120,46 +122,36 @@ var reuseableBar = function(_myData) {
 
   function set_scale(nest) {
     // SCALE SETTING
-    y.domain([0, d3.max(nest.map(function(d) { return d.value; }),
+    y.domain([0, d3.max(nest.map(function(d) { return d.values; }),
       function(d) {
-        return d3.max(keys, function(key) { return d[key]; });
+        return d3.max(d, function(d) { return d.value; });
       })
     ]);
 
-    x_0.domain(date_ticks);
-    x_1.domain(keys).rangeRound([0, x_0.bandwidth()]);
+    var reduced = nest.map(function(d) { return d.values; });
+
+    x_0.domain([
+      d3.min(nest.map(function(d) { return d.values; }), function(d) { return d.date; }),
+      d3.max(nest.map(function(d) { return d.values; }), function(d) { return d.date; })
+    ]);
+
     color.domain(keys);
+
   }
 
-  function draw_bars(nest) {
-    g.select('#weeks').remove();
-    var week = g.append('g').attr('class', 'weeks').selectAll('.week')
+  function draw_lines(nest) {
+
+    var term = g.append('g').attr('class', 'terms').selectAll('.term')
         .data(nest)
           .enter().append('g')
-        .attr('class', 'week')
-        .attr('transform', function(d) {
-          return 'translate('+ x_0(d.key) + ',0)'; });
+        .attr('class', 'term');
 
-    // RECTS
-    week.selectAll('rect')
-      .data(function(d) { return keys.map(function(key) { return {key: key, value: d.value[key]}; }); })
-        .enter().append('rect')
-      .attr('class', 'bar')
-      .attr('x', function(d) { return x_1(d.key); })
-      .attr('y', function(d) { return y(d.value); })
-      .attr('width', function(d) { return x_1.bandwidth(); })
-      .attr('height', function(d) { return height - y(d.value); })
-      .style('fill', function(d) { return color(d.key); });
-    // BAR LABELS
-    week.selectAll('text')
-      .data(function(d) { return keys.map(function(key) { return {key: key, value: d.value[key]}; }); })
-        .enter().append('text')
-      .attr('class', 'barLabel')
-      .attr('x', function(d) { return x_1(d.key) + x_1.bandwidth()/2; })
-      .attr('y', function(d) { return y(d.value); })
-      .attr('dy', 15)
-      .style('fill', '#fff')
-      .text(function(d) { return format_ticks(d.value); });
+    // lines
+    term.append('path')
+      .attr('class', 'line')
+      .attr('d', function(d) { console.log(d);return line(d.values); })
+      .style('stroke', function(d) { return color(d.key); });
+
   }
 
   function draw_axes() {
@@ -179,11 +171,10 @@ var reuseableBar = function(_myData) {
         .attr("fill", "#333")
         .attr('font-weight', 'bold')
         .style('text-anchor', 'start')
-        .text("Occurences per Week");
+        .text("Count per Day");
 
     // add the travel ban line
-    var ban_x = ((x_0(date_ticks[3]) + x_0(date_ticks[4])) /2 )
-        + x_0.bandwidth() / 2;
+    var ban_x = x_0(new Date(2017, 0, 26, 10));
 
     g.append('g').attr('id', 'travelBanAnot').append('line')
       .attr('x1', ban_x)
@@ -226,7 +217,7 @@ var reuseableBar = function(_myData) {
   }
 
   function draw_legend() {
-    g.select('#barLegend').remove();
+    g.select('#lineLegend').remove();
     var legend = d3.legendColor()
         .orient('vertical')
         .title('Keyword')
@@ -234,12 +225,12 @@ var reuseableBar = function(_myData) {
         .shapeWidth(width/20)
         .shapeHeight(30)
         .scale(color);
-    g.append('g').attr('class', 'legend').attr('id', 'barLegend')
+    g.append('g').attr('class', 'legend').attr('id', 'lineLegend')
       .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
     g.select('#barLegend').call(legend);
 
     // pull legend back
-    var leg = g.select('#barLegend').node();
+    var leg = g.select('#lineLegend').node();
     var leg_rect = leg.getClientRects()[0];
     var leg_w = leg_rect.width;
     var leg_x = width - leg_w;
@@ -275,8 +266,9 @@ var reuseableBar = function(_myData) {
       '3.0': date_ticks[6],
       '4.0': date_ticks[7],
     };
-    d.date = week_to_str[d.week];
+    d.weekStr = week_to_str[d.week];
     d.week = +d.week;
+    d.date = parse_date(d.date);
 
     d.total = +d.total;
     d.immigration = +d.immigration;

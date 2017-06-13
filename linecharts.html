@@ -43,6 +43,11 @@
 		font-weight: 700;
 		background-color: #fff;
 	}
+	.barLabel {
+	  fill: white;
+	  font-size: 10px;
+	  text-anchor: middle;
+	}
 	.axis path, .axis line {
 	  fill: none;
 	  stroke: #000;
@@ -90,9 +95,18 @@
 
 			<div class="panel-body">
 				<div class="row">
-					<div class="col-xs-12" id='lineChart'>
-						<h3>Trending Over Time</h3>
+					<div class="col-xs-12" id='stackChart'>
+						<h3>Tweets Using Immigrant vs. Immigration Before and After the Janurary 27th Travel Ban.</h3>
 					</div>
+
+					<hr>
+					<div class="col-xs-12" id='lineChart'>
+						<h3>Lines?</h3>
+					</div>
+					<div class="col-xs-12" id='lineChart2'>
+						<h3>Lines?</h3>
+					</div>
+
 					<hr>
 					<div class="col-xs-12" id='barChart'>
 						<h3>Grouped Terms</h3>
@@ -106,19 +120,36 @@
 	</div>
 </div>
 
+
 <script src="src/immigration.js"></script>
 <script src="src/immigrouped.js"></script>
-<script>
 
-var line_immig = reuseableLine('data/processed/web/term-date-counts.csv');
-d3.select('#lineChart').call(line_immig);
+
+<script src="src/immigration-line.js"></script>
+<script>
 
 var bar_immig = reuseableBar('data/processed/web/term-date-counts.csv');
 d3.select('#barChart').call(bar_immig);
 
+/*
 var bar_immig2 = reuseableBar('data/processed/web/term-date-counts.csv');
 d3.select('#barChart2').call(bar_immig2);
 bar_immig2.keys(['immigrant', 'immigration', 'nonimmigrant']);
+*/
+
+var line_immig = reuseableLine('data/processed/web/term-date-counts.csv');
+d3.select('#lineChart').call(line_immig);
+
+/*
+var line_immig2 = reuseableLine('data/processed/web/term-date-counts.csv');
+d3.select('#lineChart2').call(line_immig2);
+line_immig2.keys(['immigrant', 'immigration', 'nonimmigrant'])
+*/
+
+var stack_immig = reuseableStack('data/processed/web/term-date-counts.csv');
+d3.select('#stackChart').call(stack_immig);
+
+
 
 </script>
 </body>
