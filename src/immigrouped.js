@@ -70,6 +70,15 @@ var reuseableBar = function(_myData) {
     selection.each(function () {
       // 4.1 insert code here
       var dom = d3.select(this);
+      var domDimensions = dom.node().getBoundingClientRect();
+
+      width = domDimensions.width - margin.left - margin.right;
+      height = (domDimensions.width * 0.625) - margin.top - margin.bottom;
+      x_0.rangeRound([0, width]);
+      y.rangeRound([height, 0]);
+
+
+
       var svg = dom.append('svg')
         .attr('height', height + margin.bottom + margin.top)
         .attr('width', width + margin.left + margin.right);
@@ -78,7 +87,7 @@ var reuseableBar = function(_myData) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       var nested = d3.nest()
-          .key(function(d) { return d.week; })
+          .key(function(d) { return d.date; })
           .rollup(function(v) { return {
             immigrant: d3.sum(v, function(v) { return v.immigrant; }),
             immigration: d3.sum(v, function(v) { return v.immigration; })
@@ -88,7 +97,7 @@ var reuseableBar = function(_myData) {
 
       // SCALE SETTING
       y.domain([0, d3.max(nested, function(d) { return d.value.immigrant; })]);
-      x_0.domain(nested.map(function(d) { return d.key; }));
+      x_0.domain(date_ticks);
       x_1.domain(keys).rangeRound([0, x_0.bandwidth()]);
       color.domain(keys);
 
@@ -107,7 +116,6 @@ var reuseableBar = function(_myData) {
         .attr('width', function(d) { return x_1.bandwidth(); })
         .attr('height', function(d) { return height - y(d.value); })
         .style('fill', function(d) { return color(d.key); })
-
         .append('text')
           .attr('x', function(d) { return x_1(d.key); })
           .attr('y', function(d) { return y(d.value); })
@@ -125,21 +133,21 @@ var reuseableBar = function(_myData) {
           .attr("class", "axis axis--y")
           .call(d3.axisLeft(y).tickFormat(format_ticks))
         .append("text")
-          .attr("transform", "rotate(-90)")
+          .attr('x', 5)
           .attr("y", 6)
           .attr("dy", "0.71em")
-          .attr("fill", "#000")
+          .attr("fill", "#333")
+          .attr('font-weight', 'bold')
+          .style('text-anchor', 'start')
           .text("Occurences per Week");
-
 
       ////////////////
       // legend
-
       var legend = d3.legendColor()
           .orient('vertical')
           .title('Keyword')
           .labels(keys)
-          .shapeWidth(45)
+          .shapeWidth(x_1.bandwidth())
           .shapeHeight(30)
           .scale(color);
       g.append('g').attr('class', 'legend')
@@ -194,16 +202,26 @@ var reuseableBar = function(_myData) {
       });
     }
 
-
   // helper for XHR
   function convertToNumber(d) {
+    var week_to_str = {
+      '-4.0': date_ticks[0],
+      '-3.0': date_ticks[1],
+      '-2.0': date_ticks[2],
+      '-1.0': date_ticks[3],
+      '0': null,
+      '1.0': date_ticks[4],
+      '2.0': date_ticks[5],
+      '3.0': date_ticks[6],
+      '4.0': date_ticks[7],
+    };
+    d.date = week_to_str[d.week];
+    d.week = +d.week;
+
     d.total = +d.total;
     d.immigration = +d.immigration;
     d.immigrant = +d.immigrant;
     d.nonimmigrant = d.total - d.immigration - d.immigrant;
-
-    d.week = +d.week;
-    d.date = parse_date(d.date);
     return d;
   }
 

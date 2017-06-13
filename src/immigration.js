@@ -49,7 +49,7 @@ var reuseableLine = function(_myData) {
   // standard API for selection.call()
   function chartAPI(selection) {
     selection.each( function (d) {
-      
+
       if (typeof d !== 'undefined') { // data processing from outside
         createChart(selection, d);
       }
@@ -94,6 +94,7 @@ var reuseableLine = function(_myData) {
 
   var bisectDate = d3.bisector(x_value).left;
   function mousemove() {
+    // Data calculations
     var mouse_x = d3.mouse(this)[0],
         x0 = x_scale.invert(mouse_x),
         i = bisectDate(data, x0, 1),
@@ -101,10 +102,17 @@ var reuseableLine = function(_myData) {
         d1 = data[i],
         d = x0 - d0.date > d1.date - x0 ? d1 : d0;
 
-    focus.style("display", null);
+    // show focus class
+    d3.selectAll('.focus').style("display", null);
 
-    focus.select('#dateLabel').text("");
-    focus.select('#dateLabel').interrupt().transition(t)
+    // move line
+    d3.select('#mouseLine').interrupt().transition(t)
+      .attr('x1', mouse_x)
+      .attr('x2', mouse_x)
+      .attr('y1', height)
+      .attr('y2', 0);;
+
+    d3.select('#dateLabel').interrupt().transition(t)
       .attr('x', x_scale(x0))
       .text(d.date.toDateString());
 
@@ -129,6 +137,10 @@ var reuseableLine = function(_myData) {
     selection.each(function () {
       // 4.1 insert code here
       var dom = d3.select(this);
+      var domDimensions = dom.node().getBoundingClientRect();
+      width = domDimensions.width - margin.left - margin.right;
+      height = (domDimensions.width * 0.625) - margin.top - margin.bottom;
+
       var svg = dom.append('svg')
         .attr('height', height + margin.bottom + margin.top)
         .attr('width', width + margin.left + margin.right);
@@ -136,8 +148,8 @@ var reuseableLine = function(_myData) {
         .attr('class', 'lineChart')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      x_scale.domain(d3.extent(data, x_value));
-      y_scale.domain([0, d3.max(data, y_value) * 1.2]);
+      x_scale.domain(d3.extent(data, x_value)).rangeRound([0, width]);
+      y_scale.domain([0, d3.max(data, y_value) * 1.2]).rangeRound([height, 0]);
       color.domain(keys);
       stack.keys(keys);
 
@@ -145,6 +157,11 @@ var reuseableLine = function(_myData) {
           .data(stack(data).reverse())
             .enter().append('g')
           .attr('class', 'layer');
+
+      // Have to rescale twice to deal with the stacked area
+      y_scale.domain([0, d3.max(stack(data), function(d) {
+        return d3.max(d, function(e) { return e[1]; });
+      })]);
 
       layer.append('path')
         .attr('class', 'area')
@@ -161,10 +178,12 @@ var reuseableLine = function(_myData) {
           .attr("class", "axis axis--y")
           .call(y_axis)
         .append("text")
-          .attr("transform", "rotate(-90)")
+          .attr('x', 5)
           .attr("y", 6)
           .attr("dy", "0.71em")
-          .attr("fill", "#000")
+          .attr("fill", "#333")
+          .attr('font-weight', 'bold')
+          .style('text-anchor', 'start')
           .text("Count per Day");
 
       ////////////////
@@ -173,7 +192,18 @@ var reuseableLine = function(_myData) {
           .orient('vertical')
           .title('Keyword')
           .labels(["immigrant", "immigration", "total"])
-          .shapeWidth(45)
+          .shapeWidth(width/15)
+          .shapeHeight(30)
+          .scale(color);
+      g.append('g').attr('class', 'legend')
+        .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
+      g.select('.legend').call(legend);
+
+      var legend = d3.legendColor()
+          .orient('vertical')
+          .title('Keyword')
+          .labels(keys)
+          .shapeWidth(width/20)
           .shapeHeight(30)
           .scale(color);
       g.append('g').attr('class', 'legend')
@@ -182,7 +212,20 @@ var reuseableLine = function(_myData) {
 
       /////
       // Mouseover
-      focus = g.append('g').selectAll('.focus')
+      var mouseG = g.append('g').attr('class', 'mouseoverG');
+      mouseG.append('text')
+        .attr('class', 'focus')
+        .attr('id', 'dateLabel')
+        .attr('dx', 5)
+        .attr('y', margin.top);
+      mouseG.append('line')
+        .attr('class', 'focus')
+        .attr('id', 'mouseLine')
+        .style('stroke', 'black')
+        .style('stroke-width', '1px')
+        .style('display', 'none');
+
+      focus = mouseG.append('g').selectAll('.focus')
         .data(keys)
           .enter().append('g')
         .attr('class', 'focus')
@@ -194,18 +237,14 @@ var reuseableLine = function(_myData) {
         .attr('x', 10).attr('dy', ".35em")
         .attr('class', 'label')
         .text(function(d) { return d; });
-      focus.append('text')
-        .attr('id', 'dateLabel')
-        .attr('x', 0)
-        .attr('y', margin.top);
 
       g.append("rect")
         .attr("class", "overlay")
         .attr("width", width)
         .attr("height", height)
-        .on("mousein", function() { focus.style("display", null); })
+        .on("mousein", function() { d3.selectAll('.focus').style("display", null); })
         .on("mouseover", mousemove)
-        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mouseout", function() { d3.selectAll('.focus').style("display", "none"); })
         .on("mousemove", mousemove);
     });
   }
