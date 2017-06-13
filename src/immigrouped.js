@@ -24,14 +24,9 @@ var reuseableBar = function(_myData) {
       .rangeRound([0, width]).paddingInner(0.1);
   var x_1 = d3.scaleBand().padding(0.1);
   var y = d3.scaleLinear().rangeRound([height, 0]);
-  var color = d3.scaleOrdinal(['#addd8e', '#238443']);
+  var color = d3.scaleOrdinal(['#addd8e', '#238443', '#fec44f']);
 
   var parse_date = d3.timeParse('%Y-%m-%d');
-  var line = d3.line()
-      //.curve(d3.curveBasis)
-      .curve(d3.curveMonotoneX)
-      .x(function(d) { return x_scale(d.data.date); })
-      .y(function(d) { return y_scale(y_value(d)); });
 
   ////////////////////////////////////////////////////
   // 2.0 API for external access                    //
@@ -65,7 +60,6 @@ var reuseableBar = function(_myData) {
 
   function createChart(selection, _file) {
     data = _file;
-	  console.log(data);
 
     selection.each(function () {
       // 4.1 insert code here
@@ -76,8 +70,6 @@ var reuseableBar = function(_myData) {
       height = (domDimensions.width * 0.625) - margin.top - margin.bottom;
       x_0.rangeRound([0, width]);
       y.rangeRound([height, 0]);
-
-
 
       var svg = dom.append('svg')
         .attr('height', height + margin.bottom + margin.top)
@@ -90,13 +82,20 @@ var reuseableBar = function(_myData) {
           .key(function(d) { return d.date; })
           .rollup(function(v) { return {
             immigrant: d3.sum(v, function(v) { return v.immigrant; }),
-            immigration: d3.sum(v, function(v) { return v.immigration; })
+            immigration: d3.sum(v, function(v) { return v.immigration; }),
+            nonimmigrant: d3.sum(v, function(v) { return v.nonimmigrant; })
             };
           })
           .entries(data);
+      console.log(nested);
 
       // SCALE SETTING
-      y.domain([0, d3.max(nested, function(d) { return d.value.immigrant; })]);
+      y.domain([0, d3.max(nested.map(function(d) { return d.value; }),
+        function(d) {
+          return d3.max(keys, function(key) { return d[key]; });
+        })
+      ]);
+
       x_0.domain(date_ticks);
       x_1.domain(keys).rangeRound([0, x_0.bandwidth()]);
       color.domain(keys);
@@ -108,6 +107,7 @@ var reuseableBar = function(_myData) {
           .attr('class', 'week')
           .attr('transform', function(d) {
             return 'translate('+ x_0(d.key) + ',0)'; });
+      // RECTS
       week.selectAll('rect')
         .data(function(d) { return keys.map(function(key) { return {key: key, value: d.value[key]}; }); })
           .enter().append('rect')
@@ -115,16 +115,22 @@ var reuseableBar = function(_myData) {
         .attr('y', function(d) { return y(d.value); })
         .attr('width', function(d) { return x_1.bandwidth(); })
         .attr('height', function(d) { return height - y(d.value); })
-        .style('fill', function(d) { return color(d.key); })
-        .append('text')
-          .attr('x', function(d) { return x_1(d.key); })
-          .attr('y', function(d) { return y(d.value); })
-          .attr('dy', 10)
-          .text(function(d) { return format_ticks(d.value); });
+        .style('fill', function(d) { return color(d.key); });
+      // BAR LABELS
+      week.selectAll('text')
+        .data(function(d) { return keys.map(function(key) { return {key: key, value: d.value[key]}; }); })
+          .enter().append('text')
+        .attr('class', 'label')
+        .attr('x', function(d) { return x_1(d.key) + x_1.bandwidth()/2; })
+        .attr('y', function(d) { return y(d.value); })
+        .attr('dy', 15)
+        .style('text-anchor', 'middle')
+        .style('fill', '#fff')
+        .text(function(d) { return format_ticks(d.value); });
 
 
       // Axes
-      var axes = g.append('g')
+      var axes = g.append('g').attr('class', 'axes');
       axes.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
@@ -147,42 +153,20 @@ var reuseableBar = function(_myData) {
           .orient('vertical')
           .title('Keyword')
           .labels(keys)
-          .shapeWidth(x_1.bandwidth())
+          .shapeWidth(width/20)
           .shapeHeight(30)
           .scale(color);
-      g.append('g').attr('class', 'legend')
+      g.append('g').attr('class', 'legend').attr('id', 'barLegend')
         .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
-      g.select('.legend').call(legend);
+      g.select('#barLegend').call(legend);
 
+      // pull legend back
+      var leg = g.select('#barLegend').node();
+      var leg_rect = leg.getClientRects()[0];
+      var leg_w = leg_rect.width;
+      var leg_x = width - leg_w;
+      d3.select('#barLegend').attr('transform', 'translate('+leg_x +',' + margin.top + ')');
 
-      // Mouseover
-      /*
-      focus = g.append('g').selectAll('.focus')
-        .data(keys)
-          .enter().append('g')
-        .attr('class', 'focus')
-        .attr('id', function(d) { return 'focus-' + d; })
-        .style('display', 'none');
-
-      focus.append('circle').attr('r', 4.5);
-      focus.append("text")
-        .attr('x', 10).attr('dy', ".35em")
-        .attr('class', 'label')
-        .text(function(d) { return d; });
-      focus.append('text')
-        .attr('id', 'dateLabel')
-        .attr('x', 0)
-        .attr('y', margin.top);
-
-      g.append("rect")
-        .attr("class", "overlay")
-        .attr("width", width)
-        .attr("height", height)
-        .on("mousein", function() { focus.style("display", null); })
-        .on("mouseover", mousemove)
-        .on("mouseout", function() { focus.style("display", "none"); })
-        .on("mousemove", mousemove);
-      */
     });
   }
 
@@ -194,7 +178,7 @@ var reuseableBar = function(_myData) {
   // XHR to load data
   function readData(csvFile, selection) {
       d3.csv(csvFile, convertToNumber, function(error, f) {
-        //console.log(f);
+
         var filt5 = f.filter(function(d) { return (d.week > -5 && d.week < 5); });
         var filt0 = filt5.filter(function(d) { return d.week != 0; });
 
