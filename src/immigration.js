@@ -206,7 +206,16 @@ var reuseableLine = function(_myData) {
       var leg_x = width - leg_w;
       d3.select('.legend').attr('transform', 'translate('+leg_x +',' + margin.top + ')');
 
-      /////
+      // TRAVEL BAN LINE
+      g.append('g').attr('id', 'travelBanAnot').append('line')
+        .attr('x1', x_scale(new Date(2017, 0, 26)))
+        .attr('x2', x_scale(new Date(2017, 0, 26)))
+        .attr('y1', y_scale.range()[0])
+        .attr('y2', y_scale.range()[1])
+        .style('stroke', '#333')
+        .style('stroke-width', '1px')
+        .style("stroke-dasharray", "4,4");
+
       // Mouseover
       var mouseG = g.append('g').attr('class', 'mouseoverG');
       mouseG.append('text')
@@ -242,6 +251,36 @@ var reuseableLine = function(_myData) {
         .on("mouseover", mousemove)
         .on("mouseout", function() { d3.selectAll('.focus').style("display", "none"); })
         .on("mousemove", mousemove);
+
+
+
+      // LEGEND
+      var notes = [  {
+          "y": 85,
+          "dx": -75,
+          "dy": -49,
+          "className": "legendLineAnot",
+          "note": {
+            "title": "Travel Ban",
+            "label": "Jan 27th",
+            "wrap": 75.40540540540542,
+            "align": "right"
+          },
+          "data": {"x": new Date(2017, 0, 26, 5)}
+        }
+      ];
+      window.anot = d3.annotation()
+        //.editMode(true)
+        .type(d3.annotationLabel)
+        .accessors({
+          x: function(d){ return x_scale(d.x); },
+          y: function(d){ return y_scale(d.y); }
+        })
+        .annotations(notes);
+      g.append('g')
+        .attr('class', 'annotation-group')
+        .attr('text-align', 'start')
+        .call(window.anot);
     });
   }
 

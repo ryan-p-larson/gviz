@@ -57,7 +57,6 @@ var reuseableBar = function(_myData) {
     draw_bars(nested);
     draw_axes();
     draw_legend();
-    //return chartAPI;
   };
 
   ////////////////////////////////////
@@ -182,6 +181,49 @@ var reuseableBar = function(_myData) {
         .attr('font-weight', 'bold')
         .style('text-anchor', 'start')
         .text("Occurences per Week");
+
+    // add the travel ban line
+    var ban_x = ((x_0(date_ticks[3]) + x_0(date_ticks[4])) /2 )
+        + x_0.bandwidth() / 2;
+
+    g.append('g').attr('id', 'travelBanAnot').append('line')
+      .attr('x1', ban_x)
+      .attr('x2', ban_x)
+      .attr('y1', y.range()[0])
+      .attr('y2', y.range()[1])
+      .style('stroke', '#333')
+      .style('stroke-width', '1px')
+      .style("stroke-dasharray", "4,4");
+
+    // LEGEND
+    var notes = [  {
+        "x": ban_x,
+        "y": 85,
+        "dx": -75,
+        "dy": -49,
+        "className": "legendLineAnot",
+        "note": {
+          "title": "Travel Ban",
+          "label": "Jan 27th",
+          "wrap": 75.40540540540542,
+          "align": "right"
+        },
+        "data": {}
+      }
+    ];
+    window.anot = d3.annotation()
+      //.editMode(true)
+      .type(d3.annotationLabel)
+      .accessors({
+        x: function(d){ return x_scale(d.x); },
+        y: function(d){ return y_scale(d.y); }
+      })
+      .annotations(notes);
+    g.append('g')
+      .attr('class', 'annotation-group')
+      .attr('text-align', 'start')
+      .call(window.anot);
+
   }
 
   function draw_legend() {
