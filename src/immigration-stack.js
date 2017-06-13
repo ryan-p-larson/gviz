@@ -190,20 +190,20 @@ var reuseableStack = function(_myData) {
       var legend = d3.legendColor()
           .orient('vertical')
           .title('Keyword')
-          .labels(["immigrant", "immigration", "total"])
+          .labels(keys)
           .shapeWidth(width/20)
           .shapeHeight(30)
           .scale(color);
-      g.append('g').attr('class', 'legend')
+      g.append('g').attr('class', 'legend').attr('id', 'legendStack')
         .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
       g.select('.legend').call(legend);
 
       // pull legend back
-      var leg = d3.select('.legend').node();
+      var leg = d3.select('#legendStack').node();
       var leg_rect = leg.getClientRects()[0];
       var leg_w = leg_rect.width;
       var leg_x = width - leg_w;
-      d3.select('.legend').attr('transform', 'translate('+leg_x +',' + margin.top + ')');
+      d3.select('#legendStack').attr('transform', 'translate('+leg_x +',' + margin.top + ')');
 
       // TRAVEL BAN LINE
       g.append('g').attr('id', 'travelBanAnot').append('line')

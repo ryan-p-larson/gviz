@@ -132,7 +132,11 @@ var reuseableBar = function(_myData) {
   }
 
   function draw_bars(nest) {
-    g.select('#weeks').remove();
+    //console.log(g);
+    //if (g.select('#weeks').empty() === false) {
+      //g.select('#weeks').remove();
+    //}
+
     var week = g.append('g').attr('class', 'weeks').selectAll('.week')
         .data(nest)
           .enter().append('g')
@@ -157,8 +161,8 @@ var reuseableBar = function(_myData) {
       .attr('class', 'barLabel')
       .attr('x', function(d) { return x_1(d.key) + x_1.bandwidth()/2; })
       .attr('y', function(d) { return y(d.value); })
-      .attr('dy', 15)
-      .style('fill', '#fff')
+      .attr('dy', function(d) { return (d.value > 15000) ? 15 : -10; })
+      .style('fill', function(d) { return (d.value > 15000) ? '#fff' : '#333'; })
       .text(function(d) { return format_ticks(d.value); });
   }
 
@@ -235,7 +239,7 @@ var reuseableBar = function(_myData) {
         .shapeHeight(30)
         .scale(color);
     g.append('g').attr('class', 'legend').attr('id', 'barLegend')
-      .attr('transform', 'translate(' + (width - margin.right*6) +','+ margin.top +')');
+      .attr('transform', 'translate(' + (width - 150) +','+ margin.top +')');
     g.select('#barLegend').call(legend);
 
     // pull legend back
@@ -243,7 +247,10 @@ var reuseableBar = function(_myData) {
     var leg_rect = leg.getClientRects()[0];
     var leg_w = leg_rect.width;
     var leg_x = width - leg_w;
-    d3.select('#barLegend').attr('transform', 'translate('+leg_x +',' + margin.top + ')');
+
+    console.log(leg, leg_rect, leg_w, leg_x);
+
+    //g.select('#barLegend').attr('transform', 'translate('+ leg_x +',' + margin.top + ')');
   }
 
   ////////////////////////////////////////////////////
