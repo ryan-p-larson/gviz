@@ -12,7 +12,7 @@ var reuseableBar = function(_myData) {
                   "Jan 20th", "Feb 4th", "Feb 11th", "Feb 18th", "Feb 25th"];
 
   // 1.1 All options that should be accessible to caller
-  var margin = {top: 20, right: 20, bottom: 20, left: 40};
+  var margin = {top: 30, right: 30, bottom: 30, left: 36};
   var width = 960 - margin.left - margin.right;
   var height = 600 - margin.top - margin.bottom;
   var format_ticks = d3.format(".2s");
@@ -24,7 +24,9 @@ var reuseableBar = function(_myData) {
       .rangeRound([0, width]).paddingInner(0.1);
   var x_1 = d3.scaleBand().padding(0.1);
   var y = d3.scaleLinear().rangeRound([height, 0]);
-  var color = d3.scaleOrdinal(['#addd8e', '#238443', '#fec44f', '#d95f0e']);
+  var color = d3.scaleOrdinal(['#a6bddb', '#034e7b']);
+    //['#9ecae1', '#084594']);
+    //['#addd8e', '#238443', '#fec44f', '#d95f0e']);
 
   var parse_date = d3.timeParse('%Y-%m-%d');
 
@@ -47,7 +49,6 @@ var reuseableBar = function(_myData) {
       }
     });
   }
-
   chartAPI.keys = function(value) {
     if (!arguments.length) return keys;
     keys = value;
@@ -59,9 +60,7 @@ var reuseableBar = function(_myData) {
     draw_legend();
   };
 
-  ////////////////////////////////////
   // 3.0 add private functions here //
-  ////////////////////////////////////
   function get_nest(data, key) {
     var nested = d3.nest()
         .key(function(d) { return d[key]; })
@@ -76,10 +75,7 @@ var reuseableBar = function(_myData) {
     return nested;
   }
 
-  ////////////////////////////////////////////////////
   // 4.0 add visualization specific processing here //
-  ////////////////////////////////////////////////////
-
   function createChart(selection, _file) {
     data = _file;
 
@@ -182,6 +178,7 @@ var reuseableBar = function(_myData) {
         .attr("dy", "0.71em")
         .attr("fill", "#333")
         .attr('font-weight', 'bold')
+        .style('font-size', '12px')
         .style('text-anchor', 'start')
         .text("Occurences per Week");
 

@@ -29,6 +29,9 @@
 	<!-- Styling -->
 	<link href="src/style.css" rel="stylesheet">
 	<style>
+	.body {
+		"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	}
 	:root {
 		--annotation-color: #333333
 	}
@@ -38,39 +41,32 @@
 		stroke-width: 1.5px;
 		stroke-opacity: 0.5;
 	}
+
+	.annotation-note-content text {
+		font-size: 12px;
+	}
 	.label {
-		font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-		font-weight: 700;
-		background-color: #fff;
+		font-weight: 500;
+		/*background-color: #fff;*/
 	}
 	.barLabel {
 	  fill: white;
-	  font-size: 10px;
+	  font-size: 12px;
 	  text-anchor: middle;
 	}
+
 	.axis path, .axis line {
 	  fill: none;
-	  stroke: #000;
+	  stroke: #222;
 	  shape-rendering: crispEdges;
 	}
 	.axis--x path {
 	  display: none;
 	}
-
-	.overlay {
-	  fill: none;
-	  pointer-events: all;
+	.axis text {
+		font-size: 12px;
 	}
 
-	.focus circle {
-	  fill: none;
-	  stroke: #333;
-		stroke-width: 1.5px;
-	}
-	.layer path {
-		stroke: rgba(255, 255, 255, 127);
-		stroke-width: 0.5px;
-	}
 	.legendCells text {
 		font-size: 14px;
 	}
@@ -97,7 +93,7 @@
 				<div class="row">
 
 					<div class="col-xs-12" id='barChart'>
-						<h3>Grouped Terms</h3>
+
 				</div>
 
 			</div>
