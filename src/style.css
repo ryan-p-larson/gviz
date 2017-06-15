@@ -77,7 +77,6 @@ input {
 .card-img-top {
   overflow: hidden;
   width: inherit;
-  max-width: 33%;
   /*
   max-height: 250px;
   max-width: 33%;
