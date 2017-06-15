@@ -164,7 +164,7 @@ var reUsableChart = function(_myData) {
     // add g first
     var g_legend = g.append('g')
         .attr('class', 'legend')
-        .attr('transform', 'translate('+ (width*.85) +','+ (height*0.05) +')');
+        .attr('transform', 'translate('+ (width*.75) +','+ (height*0.05) +')');
     var legend = d3.legendColor()
         .title('User Category')
         .shapeWidth(30)
@@ -173,6 +173,7 @@ var reUsableChart = function(_myData) {
         .orient('vertical')
         .scale(color);
     d3.select('.legend').call(legend);
+
 
     // enable mouseover for legend
     g_legend.selectAll('rect.swatch')
@@ -194,8 +195,6 @@ var reUsableChart = function(_myData) {
                 .style('opacity', opacity.normal);
           sel.lower();
       });
-
-
 
       // add the travel ban line
       var ban_x = x_scale(new Date(2017, 0, 26, 10));
@@ -330,23 +329,26 @@ var reUsableChart = function(_myData) {
     // Axes
    g.append('g')
        .attr("transform", "translate(0," + (y_scale.range()[0] + margin.bottom/3) + ")")
-       .attr('class', 'axis')
+       .attr('class', 'axis--x')
        .call(x_axis)
         .select(".tick:last-of-type text")
         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
         .attr("y", 30)
+        .attr('dx', '-10')
         .attr("dy", null)
         .attr("font-weight", "bold")
+        .style('font-size', '12px')
         .text('Date of 1st RT');
    g.append('g')
        .attr("transform", "translate("+  -(margin.left/3) +"," + (x_scale.range()[0]) + ")")
-       .attr('class', 'axis')
+       .attr('class', 'axis--y')
        .call(y_axis.tickFormat(d3.format(".0s")))
         .select(".tick:last-of-type text")
         .select(function() { return this.parentNode.appendChild(this.cloneNode()); })
         .attr("x", 10)
         .attr("text-anchor", "start")
         .attr("font-weight", "bold")
+        .style('font-size', '12px')
         .text("# RT's");
 
     d3.select('#subtitle').html(title);
