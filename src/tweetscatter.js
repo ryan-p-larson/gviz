@@ -246,6 +246,13 @@ var reUsableChart = function(_myData) {
     selection.each(function () {
       // 4.1 insert code here
       var dom = d3.select(this);
+      var domDimensions = dom.node().getBoundingClientRect();
+
+      width = domDimensions.width - margin.left - margin.right;
+      height = (domDimensions.width * 0.625) - margin.top - margin.bottom;
+      x_scale.rangeRound([0, width]);
+      y_scale.rangeRound([height, 0]);
+
       var svg = dom.append('svg')
         .attr('height', height)
         .attr('width', width);
