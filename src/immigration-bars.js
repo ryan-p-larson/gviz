@@ -248,7 +248,6 @@ var reuseableBar = function(_myData) {
     var leg_w = leg_rect.width;
     var leg_x = width - leg_w;
 
-    console.log(leg, leg_rect, leg_w, leg_x);
 
     //g.select('#barLegend').attr('transform', 'translate('+ leg_x +',' + margin.top + ')');
   }
