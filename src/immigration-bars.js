@@ -12,7 +12,7 @@ var reuseableBar = function(_myData) {
                   "Jan 20th", "Feb 4th", "Feb 11th", "Feb 18th", "Feb 25th"];
 
   // 1.1 All options that should be accessible to caller
-  var margin = {top: 30, right: 30, bottom: 30, left: 36};
+  var margin = {top: 30, right: 30, bottom: 36, left: 36};
   var width = 960 - margin.left - margin.right;
   var height = 600 - margin.top - margin.bottom;
   var format_ticks = d3.format(".2s");
@@ -168,7 +168,16 @@ var reuseableBar = function(_myData) {
     axes.append("g")
       .attr("class", "axis axis--x")
       .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x_0));
+      .call(d3.axisBottom(x_0))
+      .append("text")
+        .attr('x', width)
+        .attr("y", 27)
+        .attr("dy", "0.71em")
+        .attr("fill", "#333")
+        .attr('font-weight', 'bold')
+        .style('font-size', '12px')
+        .style('text-anchor', 'end')
+        .text("Week Before/After Ban");
     axes.append("g")
         .attr("class", "axis axis--y")
         .call(d3.axisLeft(y).tickFormat(format_ticks))
